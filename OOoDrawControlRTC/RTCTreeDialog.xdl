@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="RTCTreeDialog" dlg:left="54" dlg:top="17" dlg:width="174" dlg:height="193" dlg:closeable="true" dlg:moveable="true">
+ <dlg:bulletinboard>
+  <dlg:text dlg:id="Label1" dlg:tab-index="10" dlg:left="117" dlg:top="16" dlg:width="35" dlg:height="9" dlg:value="X軸オフセット"/>
+  <dlg:text dlg:id="Label2" dlg:tab-index="11" dlg:left="118" dlg:top="40" dlg:width="34" dlg:height="9" dlg:value="Y軸オフセット"/>
+  <dlg:text dlg:id="Label3" dlg:tab-index="12" dlg:left="114" dlg:top="63" dlg:width="45" dlg:height="9" dlg:value="姿勢オフセット(rad)"/>
+  <dlg:text dlg:id="Label4" dlg:tab-index="13" dlg:left="122" dlg:top="85" dlg:width="33" dlg:height="9" dlg:value="X軸拡大率(%)"/>
+  <dlg:text dlg:id="Label5" dlg:tab-index="14" dlg:left="122" dlg:top="108" dlg:width="33" dlg:height="7" dlg:value="Y軸拡大率(%)"/>
+  <dlg:text dlg:id="Label6" dlg:tab-index="15" dlg:left="109" dlg:top="130" dlg:width="58" dlg:height="7" dlg:value="ネームサーバーのアドレス"/>
+  <dlg:treecontrol dlg:id="RTCTreeControl" dlg:tab-index="0" dlg:left="5" dlg:top="4" dlg:width="97" dlg:height="173" dlg:selectiontype="single"/>
+  <dlg:textfield dlg:id="nameserver" dlg:tab-index="16" dlg:left="107" dlg:top="139" dlg:width="61" dlg:height="12"/>
+  <dlg:button dlg:id="CreateRTCTreeButton" dlg:tab-index="2" dlg:left="107" dlg:top="152" dlg:width="61" dlg:height="12" dlg:value="ツリー表示"/>
+  <dlg:textfield dlg:id="TextField6" dlg:tab-index="17" dlg:left="107" dlg:top="3" dlg:width="61" dlg:height="12"/>
+  <dlg:textfield dlg:id="Xoffset" dlg:tab-index="3" dlg:left="107" dlg:top="26" dlg:width="61" dlg:height="12"/>
+  <dlg:textfield dlg:id="Yoffset" dlg:tab-index="1" dlg:left="107" dlg:top="50" dlg:width="61" dlg:height="12"/>
+  <dlg:textfield dlg:id="Roffset" dlg:tab-index="4" dlg:left="106" dlg:top="73" dlg:width="61" dlg:height="11"/>
+  <dlg:textfield dlg:id="Xscale" dlg:tab-index="5" dlg:left="105" dlg:top="95" dlg:width="61" dlg:height="12"/>
+  <dlg:textfield dlg:id="Yscale" dlg:tab-index="6" dlg:left="105" dlg:top="117" dlg:width="61" dlg:height="12"/>
+  <dlg:button dlg:id="CreateButton" dlg:tab-index="7" dlg:left="7" dlg:top="179" dlg:width="45" dlg:height="13" dlg:value="追加"/>
+  <dlg:button dlg:id="DeleteButton" dlg:tab-index="8" dlg:left="54" dlg:top="179" dlg:width="45" dlg:height="13" dlg:value="削除"/>
+  <dlg:button dlg:id="SetPosButton" dlg:tab-index="9" dlg:left="107" dlg:top="166" dlg:width="61" dlg:height="11" dlg:value="位置初期化"/>
+  <dlg:button dlg:id="SetAllPosButton" dlg:tab-index="18" dlg:left="107" dlg:top="179" dlg:width="61" dlg:height="11" dlg:value="全ての位置初期化"/>
+ </dlg:bulletinboard>
+</dlg:window>

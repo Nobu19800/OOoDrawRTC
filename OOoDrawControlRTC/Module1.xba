@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="Module1" script:language="StarBasic">REM  *****  BASIC  *****
+
+Sub Main
+
+End Sub
+
+Sub SetRate(ev)
+ sMacroPath = &quot;OOoDrawRTC.py$Set_Rate&quot;
+ CallPythonMacroWithEvent(sMacroPath, ev)
+End sub
+
+Sub Activate(ev)
+ sMacroPath = &quot;OOoDrawRTC.py$Start&quot;
+ CallPythonMacroWithEvent(sMacroPath, ev)
+End sub
+
+Sub Deactivate(ev)
+ sMacroPath = &quot;OOoDrawRTC.py$Stop&quot;
+ CallPythonMacroWithEvent(sMacroPath, ev)
+End sub
+
+Sub SetDialog(ev)
+ sMacroPath = &quot;OOoDrawRTC.py$SetDialog&quot;
+ CallPythonMacroWithEvent(sMacroPath, ev)
+End sub
+
+Sub Test(ev)
+ sMacroPath = &quot;OOoDrawRTC.py$Test&quot;
+ CallPythonMacroWithEvent(sMacroPath, ev)
+End sub
+
+
+Sub createOOoDrawComp(ev)
+ sMacroPath = &quot;OOoDrawRTC.py$createOOoDrawComp&quot;
+ CallPythonMacroWithEvent(sMacroPath, ev)
+End sub
+
+Sub CallPythonMacroWithEvent(sPart As String, ev As Object)
+
+ oMSPF = GetDefaultContext.getValueByName( _
+ &quot;/singletons/com.sun.star.script.provider.theMasterScriptProviderFactory&quot;)
+ oMSP = oMSPF.createScriptProvider(&quot;&quot;)
+ sScriptUrl = &quot;vnd.sun.star.script:&quot; &amp; sPart &amp; &quot;?language=Python&amp;location=user&quot;
+ oScript = oMSP.getScript(sScriptUrl)
+ oScript.invoke(array(),array(),array())
+End Sub
+</script:module>
