@@ -46,8 +46,8 @@ import OOoRTC
 
 
 
-comp_num = random.randint(1,3000)
-imp_id = "OOoDrawControl" + str(comp_num)
+#comp_num = random.randint(1,3000)
+imp_id = "OOoDrawControl"# + str(comp_num)
 
 
 class m_ControlName:
