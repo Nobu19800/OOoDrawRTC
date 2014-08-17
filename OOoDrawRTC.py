@@ -464,8 +464,8 @@ def JudgeDrawObjRTC(obj):
   if OOoRTC.draw_comp:
     for n,i in OOoRTC.draw_comp._InPorts.items():
       if i._obj == obj:
-        return True
-  return False
+        return i
+  return None
 
 
 
@@ -478,29 +478,12 @@ def JudgeDrawObjRTC(obj):
 # インポートを追加する関数
 ##
 
-def CompAddInPort(name, o_port, dlg_control):
+def CompAddInPort(name, o_port, dlg_control, obj):
 
     if OOoRTC.draw_comp == None:
         return False
-    else:
-      try:
-        draw = OOoDraw()
-      except NotOOoDrawException:
-          return False
-      sobj = draw.document.CurrentSelection
-      
-      if sobj:
-        if sobj.Count > 0:
-          
-          obj = sobj.getByIndex(0)
-
-          m_i,m_j = JudgeRTCObjDraw(obj)
-          t_name = name + str(m_i) + str(m_j)
-          
-          if JudgeDrawObjRTC(obj) == True:
-            MyMsgBox(SetCoding('エラー'),SetCoding('既に他のデータポートと関連付けています'))
-            return False
-          
+    else:      
+        
           xo_control = dlg_control.getControl( m_ControlName.XoffsetBName )
           xo = long(xo_control.Text)
 
@@ -523,10 +506,9 @@ def CompAddInPort(name, o_port, dlg_control):
           
 
           
-          OOoRTC.draw_comp.m_addInPort(t_name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
+          OOoRTC.draw_comp.m_addInPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
 
-          t_str = str(m_i) + "ページの" +  str(m_j) + "番目の図形と" + name + "を関連付けました"
-          MyMsgBox('',SetCoding(t_str))
+          
     return True
 
 ##
@@ -1012,50 +994,64 @@ class CreatePortListener( unohelper.Base, XActionListener):
         self.dlg_control = dlg_control
 
     def actionPerformed(self, actionEvent):
-        
-        objectTree = self.dlg_control.getControl(m_ControlName.RTCTreeName)
-        t_comp, nd = JudgePort(objectTree, self._paths)
-        
-        
-        if t_comp:
-            
-            
-            for n,i in OOoRTC.draw_comp._InPorts.items():
-              if i._port_a[0] == t_comp[0]:
-                  xo_control = self.dlg_control.getControl( m_ControlName.XoffsetBName )
-                  yo_control = self.dlg_control.getControl( m_ControlName.YoffsetBName )
-                  ro_control = self.dlg_control.getControl( m_ControlName.RoffsetBName )
-                  xs_control = self.dlg_control.getControl( m_ControlName.XscaleBName )
-                  ys_control = self.dlg_control.getControl( m_ControlName.YscaleBName )
-                  i._ox = long(xo_control.Text)
-                  i._oy = long(yo_control.Text)
-                  i._or = float(ro_control.Text)
-                  i._sx = long(xs_control.Text)
-                  i._sy = long(ys_control.Text)
-                  UpdateSaveSheet()
-                  
-                  return
 
-            
-            F_Name = t_comp[0][-2] + t_comp[0][-1]
-            
-            
-            profile = t_comp[1].get_port_profile()
-            props = nvlist_to_dict(profile.properties)
-            if props['port.port_type'] == 'DataInPort':
-                pass
-            elif props['port.port_type'] == 'DataOutPort':                
-                if CompAddInPort(F_Name, t_comp, self.dlg_control) == False:
+        try:
+            draw = OOoDraw()
+        except NotOOoDrawException:
+            return
+
+        sobj = draw.document.CurrentSelection
+
+        if sobj:
+            if sobj.Count > 0:
+                obj = sobj.getByIndex(0)
+                jport = JudgeDrawObjRTC(obj)
+                if jport:
+                    xo_control = self.dlg_control.getControl( m_ControlName.XoffsetBName )
+                    yo_control = self.dlg_control.getControl( m_ControlName.YoffsetBName )
+                    ro_control = self.dlg_control.getControl( m_ControlName.RoffsetBName )
+                    xs_control = self.dlg_control.getControl( m_ControlName.XscaleBName )
+                    ys_control = self.dlg_control.getControl( m_ControlName.YscaleBName )
+                    jport._ox = long(xo_control.Text)
+                    jport._oy = long(yo_control.Text)
+                    jport._or = float(ro_control.Text)
+                    jport._sx = long(xs_control.Text)
+                    jport._sy = long(ys_control.Text)
+                    UpdateSaveSheet()
+
                     return
+
+
+                
+                    
+                objectTree = self.dlg_control.getControl(m_ControlName.RTCTreeName)
+                t_comp, nd = JudgePort(objectTree, self._paths)
                 
                 
+                if t_comp:
+                    
+                    m_i,m_j = JudgeRTCObjDraw(obj)
+                    
+                    F_Name = t_comp[0][-2] + t_comp[0][-1] + str(m_i) + str(m_j)
+                    
+                    
+                    profile = t_comp[1].get_port_profile()
+                    props = nvlist_to_dict(profile.properties)
+                    if props['port.port_type'] == 'DataInPort':
+                        pass
+                    elif props['port.port_type'] == 'DataOutPort':                
+                        CompAddInPort(F_Name, t_comp, self.dlg_control, obj)
+                        t_str = str(m_i) + "ページの" +  str(m_j) + "番目の図形と" + t_comp[0][-2] + t_comp[0][-1] + "を関連付けました"
+                        MyMsgBox('',SetCoding(t_str))
+                        
+                        
 
-            
+                    
 
-            UpdateSaveSheet()
+                    UpdateSaveSheet()
 
-            info_control = self.dlg_control.getControl( m_ControlName.TextFName )
-            info_control.setText(SetCoding('作成済み'))
+                    info_control = self.dlg_control.getControl( m_ControlName.TextFName )
+                    info_control.setText(SetCoding('作成済み'))
         
 
 ##
@@ -1082,15 +1078,20 @@ class MySelectListener( unohelper.Base, XSelectionChangeListener):
     def __init__(self, dlg_control, _paths):
         self.dlg_control = dlg_control
         self._paths = _paths
-    def mousePressed(self, ev):
-        objectTree = self.dlg_control.getControl( m_ControlName.RTCTreeName )
-        t_comp, nd = JudgePort(objectTree, self._paths)
-        if t_comp:
-            
-            
-            for n,i in OOoRTC.draw_comp._InPorts.items():
-                if i._port_a[0] == t_comp[0]:
-                    UpdateTree(self.dlg_control, i)
+    def selectionChanged(self, ev):
+        try:
+            draw = OOoDraw()
+        except NotOOoDrawException:
+            return
+
+        sobj = draw.document.CurrentSelection
+        
+        if sobj:
+            if sobj.Count > 0:
+                obj = sobj.getByIndex(0)
+                jport = JudgeDrawObjRTC(obj)
+                if jport:
+                    UpdateTree(self.dlg_control, jport)
                     return
         else:
             return
@@ -1111,20 +1112,27 @@ class DeleteListener( unohelper.Base, XActionListener ):
         self.dlg_control = dlg_control
 
     def actionPerformed(self, actionEvent):
-        objectTree = self.dlg_control.getControl(m_ControlName.RTCTreeName)
-        t_comp, nd = JudgePort(objectTree, self._paths)
-        if t_comp:
-            
-            for n,i in OOoRTC.draw_comp._InPorts.items():
-                if i._port_a[0] == t_comp[0]:
-                    OOoRTC.draw_comp.m_removeInComp(i)
+        try:
+            draw = OOoDraw()
+        except NotOOoDrawException:
+              return
+
+        sobj = draw.document.CurrentSelection
+
+        if sobj:
+            if sobj.Count > 0:
+                obj = sobj.getByIndex(0)
+                jport = JudgeDrawObjRTC(obj)
+                if jport:
+                    OOoRTC.draw_comp.m_removeInComp(jport)
                     ClearInfo(self.dlg_control)
                     MyMsgBox('',SetCoding('削除しました'))
+
+                    UpdateSaveSheet()
                     return
-            UpdateSaveSheet()
-        else:
-            MyMsgBox(SetCoding('エラー'),SetCoding('データポートを選択してください'))
-            return
+                    
+            
+        
         
         MyMsgBox(SetCoding('エラー'),SetCoding('削除済みです'))
 
