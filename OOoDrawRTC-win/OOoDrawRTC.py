@@ -9,10 +9,7 @@ import commands
 import math
 
 
-if os.name == 'posix':
-    sys.path += ['/usr/lib/python2.6/dist-packages', '/usr/lib/python2.6/dist-packages/rtctree/rtmidl']
-elif os.name == 'nt':
-    sys.path += ['C:\\Python26\\lib\\site-packages', 'C:\\Python26\\lib\\site-packages\\rtctree\\rtmidl']
+sys.path += ['C:\\Python26\\lib\\site-packages', 'C:\\Python26\\lib\\site-packages\\rtctree\\rtmidl']
 
 import time
 import random
@@ -73,7 +70,7 @@ class m_ControlName:
 ooodrawcontrol_spec = ["implementation_id", imp_id,
                   "type_name",         imp_id,
                   "description",       "Openoffice Draw Component",
-                  "version",           "0.1",
+                  "version",           "0.0.2",
                   "vendor",            "Miyamoto Nobuhiko",
                   "category",          "example",
                   "activity_type",     "DataFlowComponent",
@@ -204,14 +201,14 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
               
                 
           elif ip._dataType[1] == extended:
-            if ip._dataType[2] == 'RTC/TimedPoint2D':
+            if ip._dataType[2] == 'TimedPoint2D':
               ObjSetPos(ip, dt.data.x, dt.data.y)
-            elif ip._dataType[2] == 'RTC/TimedVector2D':
+            elif ip._dataType[2] == 'TimedVector2D':
               ObjSetPos(ip, dt.data.x, dt.data.y)
-            elif ip._dataType[2] == 'RTC/TimedPose2D':
+            elif ip._dataType[2] == 'TimedPose2D':
               ip._obj.RotateAngle = long((dt.data.heading + ip._or)*100. * 180/3.141592)
               ObjSetPos(ip, dt.data.position.x, dt.data.position.y)
-            elif ip._dataType[2] == 'RTC/TimedGeometry2D':
+            elif ip._dataType[2] == 'TimedGeometry2D':
               ip._obj.RotateAngle = long((dt.data.pose.heading + ip._or)*100. * 180/3.141592)
               ObjSetPos(ip, dt.data.pose.position.x, dt.data.pose.position.y)
             
@@ -279,47 +276,48 @@ def GetDataType(m_port):
     if colon != -1:
         data_type = data_type[:colon]
 
+    data_type = data_type.replace('RTC/','')
     
-    if data_type == 'RTC/TimedDoubleSeq':
+    if data_type == 'TimedDoubleSeq':
         dt = RTC.TimedDoubleSeq(RTC.Time(0,0),[])
         return dt, [float, basic]
-    elif data_type == 'RTC/TimedLongSeq':
+    elif data_type == 'TimedLongSeq':
         dt = RTC.TimedLongSeq(RTC.Time(0,0),[])
         return dt, [long, basic]
-    elif data_type == 'RTC/TimedFloatSeq':
+    elif data_type == 'TimedFloatSeq':
         dt = RTC.TimedFloatSeq(RTC.Time(0,0),[])
         return dt, [float, basic]
-    elif data_type == 'RTC/TimedIntSeq':
+    elif data_type == 'TimedIntSeq':
         dt = RTC.TimedIntSeq(RTC.Time(0,0),[])
         return dt, [int, basic]
-    elif data_type == 'RTC/TimedShortSeq':
+    elif data_type == 'TimedShortSeq':
         dt = RTC.TimedShortSeq(RTC.Time(0,0),[])
         return dt, [int, basic]
-    elif data_type == 'RTC/TimedUDoubleSeq':
+    elif data_type == 'TimedUDoubleSeq':
         dt = RTC.TimedUDoubleSeq(RTC.Time(0,0),[])
         return dt, [float, basic]
-    elif data_type == 'RTC/TimedULongSeq':
+    elif data_type == 'TimedULongSeq':
         dt = RTC.TimedULongSeq(RTC.Time(0,0),[])
         return dt, [long, basic]
-    elif data_type == 'RTC/TimedUFloatSeq':
+    elif data_type == 'TimedUFloatSeq':
         dt = RTC.TimedUFloatSeq(RTC.Time(0,0),[])
         return dt, [float, basic]
-    elif data_type == 'RTC/TimedUIntSeq':
+    elif data_type == 'TimedUIntSeq':
         dt = RTC.TimedUIntSeq(RTC.Time(0,0),[])
         return dt, [int, basic]
-    elif data_type == 'RTC/TimedUShortSeq':
+    elif data_type == 'TimedUShortSeq':
         dt = RTC.TimedUShortSeq(RTC.Time(0,0),[])
         return dt, [int, basic]
-    elif data_type == 'RTC/TimedPoint2D':
+    elif data_type == 'TimedPoint2D':
         dt = RTC.TimedPoint2D(RTC.Time(0,0),RTC.Point2D(0,0))
         return dt, [RTC.Point2D, extended, data_type]
-    elif data_type == 'RTC/TimedVector2D':
+    elif data_type == 'TimedVector2D':
         dt = RTC.TimedVector2D(RTC.Time(0,0),RTC.Vector2D(0,0))
         return dt, [RTC.Vector2D, extended, data_type]
-    elif data_type == 'RTC/TimedPose2D':
+    elif data_type == 'TimedPose2D':
         dt = RTC.TimedPose2D(RTC.Time(0,0),RTC.Pose2D(RTC.Point2D(0,0),0))
         return dt, [RTC.Pose2D, extended, data_type]
-    elif data_type == 'RTC/TimedGeometry2D':
+    elif data_type == 'TimedGeometry2D':
         dt = RTC.TimedGeometry2D(RTC.Time(0,0),RTC.Geometry2D(RTC.Pose2D(RTC.Point2D(0,0),0), RTC.Size2D(0,0)))
         return dt, [RTC.Geometry2D, extended, data_type]
     
@@ -715,20 +713,24 @@ def ListRecursive(context, rtclist, name, oParent, oTreeDataModel):
                     tkm = OpenRTM_aist.CorbaConsumer()
                     tkm.setObject(context.resolve(i.binding_name))
                     inobj = tkm.getObject()._narrow(RTC.RTObject)
-                    pin = inobj.get_ports()
-                    for p in pin:
-                        name_buff2 = name_buff[:]
-                        profile = p.get_port_profile()
-                        props = nvlist_to_dict(profile.properties)
-                        tp_n = profile.name.split('.')[1]
-                        name_buff2.append(tp_n)
-                        if oTreeDataModel == None:
-                            pass
-                        else:
-                            oChild_port = oTreeDataModel.createNode(tp_n,False)
-                            oChild.appendChild(oChild_port)
 
-                        rtclist.append([name_buff2,p])
+                    try:
+                        pin = inobj.get_ports()
+                        for p in pin:
+                            name_buff2 = name_buff[:]
+                            profile = p.get_port_profile()
+                            props = nvlist_to_dict(profile.properties)
+                            tp_n = profile.name.split('.')[1]
+                            name_buff2.append(tp_n)
+                            if oTreeDataModel == None:
+                                pass
+                            else:
+                                oChild_port = oTreeDataModel.createNode(tp_n,False)
+                                oChild.appendChild(oChild_port)
+
+                            rtclist.append([name_buff2,p])
+                    except:
+                        pass
                         
             else:
                 pass
