@@ -1,4 +1,4 @@
-# -*- coding: cp932 -*-
+# -*- coding: utf-8 -*-
 
 import optparse
 import sys,os,platform
@@ -9,7 +9,11 @@ import commands
 import math
 
 
-sys.path += ['C:\\Python26\\lib\\site-packages', 'C:\\Python26\\lib\\site-packages\\rtctree\\rtmidl']
+if os.name == 'posix':
+    sys.path += ['/usr/lib/python2.6/dist-packages', '/usr/lib/python2.6/dist-packages/rtctree/rtmidl']
+elif os.name == 'nt':
+    sys.path += ['C:\\Python26\\lib\\site-packages', 'C:\\Python26\\lib\\site-packages\\rtctree\\rtmidl']
+
 
 import time
 import random
@@ -47,6 +51,12 @@ import OOoRTC
 imp_id = "OOoDrawControl"# + str(comp_num)
 
 
+def SetCoding(m_str):
+    if os.name == 'posix':
+        return m_str
+    elif os.name == 'nt':
+        return m_str.decode('utf-8').encode('cp932')
+
 class m_ControlName:
     XoffsetBName = "Xoffset"
     YoffsetBName = "Yoffset"
@@ -83,7 +93,7 @@ ooodrawcontrol_spec = ["implementation_id", imp_id,
 
 
 ##
-# OpenOffice Draw‚ğ‘€ì‚·‚é‚½‚ß‚ÌRTC‚ÌƒNƒ‰ƒX
+# OpenOffice Drawã‚’æ“ä½œã™ã‚‹ãŸã‚ã®RTCã®ã‚¯ãƒ©ã‚¹
 ##
 
 class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
@@ -102,42 +112,42 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     return
 
   ##
-  # ÀsüŠú‚ğİ’è‚·‚éŠÖ”
+  # å®Ÿè¡Œå‘¨æœŸã‚’è¨­å®šã™ã‚‹é–¢æ•°
   ##
   def m_setRate(self, rate):
       m_ec = self.get_owned_contexts()
       m_ec[0].set_rate(rate)
 
   ##
-  # Šˆ«‰»‚·‚é‚½‚ß‚ÌŠÖ”
+  # æ´»æ€§åŒ–ã™ã‚‹ãŸã‚ã®é–¢æ•°
   ## 
   def m_activate(self):
       m_ec = self.get_owned_contexts()
       m_ec[0].activate_component(self._objref)
 
   ##
-  # •sŠˆ«‰»‚·‚é‚½‚ß‚ÌŠÖ”
+  # ä¸æ´»æ€§åŒ–ã™ã‚‹ãŸã‚ã®é–¢æ•°
   ##
   def m_deactivate(self):
       m_ec = self.get_owned_contexts()
       m_ec[0].deactivate_component(self._objref)
 
   ##
-  # ƒAƒEƒgƒ|[ƒg’Ç‰Á‚ÌŠÖ”
-  # nameFƒAƒEƒgƒ|[ƒg‚Ì–¼‘O
-  # m_inportFÚ‘±‚·‚éƒCƒ“ƒ|[ƒg
-  # colFƒf[ƒ^‚ğ‘‚«‚Şs”Ô†
-  # snGÚ‘±‚·‚éƒCƒ“ƒ|[ƒg‚ÌƒpƒX
+  # ã‚¢ã‚¦ãƒˆãƒãƒ¼ãƒˆè¿½åŠ ã®é–¢æ•°
+  # nameï¼šã‚¢ã‚¦ãƒˆãƒãƒ¼ãƒˆã®åå‰
+  # m_inportï¼šæ¥ç¶šã™ã‚‹ã‚¤ãƒ³ãƒãƒ¼ãƒˆ
+  # colï¼šãƒ‡ãƒ¼ã‚¿ã‚’æ›¸ãè¾¼ã‚€è¡Œç•ªå·
+  # snï¼›æ¥ç¶šã™ã‚‹ã‚¤ãƒ³ãƒãƒ¼ãƒˆã®ãƒ‘ã‚¹
   ##
   def m_addOutPort(self, name, m_inport, col, sn):
       return
 
   ##
-  # ƒCƒ“ƒ|[ƒg’Ç‰Á‚ÌŠÖ”
-  # nameFƒCƒ“ƒ|[ƒg‚Ì–¼‘O
-  # m_inportFÚ‘±‚·‚éƒAƒEƒgƒ|[ƒg
-  # colFƒf[ƒ^‚ğ‘‚«‚Şs”Ô†
-  # snGÚ‘±‚·‚éƒAƒEƒgƒ|[ƒg‚ÌƒpƒX
+  # ã‚¤ãƒ³ãƒãƒ¼ãƒˆè¿½åŠ ã®é–¢æ•°
+  # nameï¼šã‚¤ãƒ³ãƒãƒ¼ãƒˆã®åå‰
+  # m_inportï¼šæ¥ç¶šã™ã‚‹ã‚¢ã‚¦ãƒˆãƒãƒ¼ãƒˆ
+  # colï¼šãƒ‡ãƒ¼ã‚¿ã‚’æ›¸ãè¾¼ã‚€è¡Œç•ªå·
+  # snï¼›æ¥ç¶šã™ã‚‹ã‚¢ã‚¦ãƒˆãƒãƒ¼ãƒˆã®ãƒ‘ã‚¹
   ##
   def m_addInPort(self, name, m_outport, offset, scale, pos, obj):
       m_data_i, m_data_type =  GetDataType(m_outport[1])
@@ -149,8 +159,8 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
         self._InPorts[name] = MyPortObject(m_inport, m_data_i, name, offset, scale, pos, obj, m_outport, m_data_type)
 
   ##
-  # ƒCƒ“ƒ|[ƒgíœ‚ÌŠÖ”
-  # outportFíœ‚·‚éƒCƒ“ƒ|[ƒg
+  # ã‚¤ãƒ³ãƒãƒ¼ãƒˆå‰Šé™¤ã®é–¢æ•°
+  # outportï¼šå‰Šé™¤ã™ã‚‹ã‚¤ãƒ³ãƒãƒ¼ãƒˆ
   ##
 
   def m_removeInComp(self, inport):
@@ -160,7 +170,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
 
   ##
-  # ‰Šú‰»ˆ——pƒR[ƒ‹ƒoƒbƒNŠÖ”
+  # åˆæœŸåŒ–å‡¦ç†ç”¨ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°
   ##
   def onInitialize(self):
     
@@ -170,7 +180,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     return RTC.RTC_OK
 
   ##
-  # üŠúˆ——pƒR[ƒ‹ƒoƒbƒNŠÖ”
+  # å‘¨æœŸå‡¦ç†ç”¨ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°
   ##
   
   def onExecute(self, ec_id):
@@ -217,7 +227,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     return RTC.RTC_OK
 
   ##
-  # I—¹ˆ——pƒR[ƒ‹ƒoƒbƒNŠÖ”
+  # çµ‚äº†å‡¦ç†ç”¨ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°
   ##
   
   def on_shutdown(self, ec_id):
@@ -226,7 +236,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
 
 ##
-# ’Ç‰Á‚·‚éƒ|[ƒg‚ÌƒNƒ‰ƒX
+# è¿½åŠ ã™ã‚‹ãƒãƒ¼ãƒˆã®ã‚¯ãƒ©ã‚¹
 ##
 
 class MyPortObject:
@@ -248,7 +258,7 @@ class MyPortObject:
 
 
 ##
-# ƒf[ƒ^‚Ìƒ^ƒCƒv
+# ãƒ‡ãƒ¼ã‚¿ã®ã‚¿ã‚¤ãƒ—
 ##
 
 class m_DataType:
@@ -260,7 +270,7 @@ class m_DataType:
 
 
 ##
-# ƒf[ƒ^Œ^‚ğ•Ô‚·ŠÖ”
+# ãƒ‡ãƒ¼ã‚¿å‹ã‚’è¿”ã™é–¢æ•°
 ##
 
 def GetDataType(m_port):
@@ -333,7 +343,7 @@ def GetDataType(m_port):
 
 
 ##
-# ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğŠˆ«‰»‚µ‚ÄDraw‚Ì‘€ì‚ğŠJn‚·‚éŠÖ”
+# ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’æ´»æ€§åŒ–ã—ã¦Drawã®æ“ä½œã‚’é–‹å§‹ã™ã‚‹é–¢æ•°
 ##
 
 def Start():
@@ -342,7 +352,7 @@ def Start():
         OOoRTC.draw_comp.m_activate()
 
 ##
-# ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ•sŠˆ«‰»‚µ‚ÄDraw‚Ì‘€ì‚ğI—¹‚·‚éŠÖ”
+# ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’ä¸æ´»æ€§åŒ–ã—ã¦Drawã®æ“ä½œã‚’çµ‚äº†ã™ã‚‹é–¢æ•°
 ##
 
 def Stop():
@@ -352,7 +362,7 @@ def Stop():
 
 
 ##
-# ƒRƒ“ƒ|[ƒlƒ“ƒg‚ÌÀsüŠú‚ğİ’è‚·‚éŠÖ”
+# ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®å®Ÿè¡Œå‘¨æœŸã‚’è¨­å®šã™ã‚‹é–¢æ•°
 ##
 
 def Set_Rate():
@@ -404,7 +414,7 @@ def ObjSetPos(_port, _x, _y):
 
 
 ##
-# İ’è‚µ‚½}Œ`‚ª‘¶İ‚·‚é‚©”»’è‚·‚éŠÖ”
+# è¨­å®šã—ãŸå›³å½¢ãŒå­˜åœ¨ã™ã‚‹ã‹åˆ¤å®šã™ã‚‹é–¢æ•°
 ##
 def JudgeRTCObjDraw(obj):
   
@@ -425,7 +435,7 @@ def JudgeRTCObjDraw(obj):
 
 
 ##
-#RTC‚ğƒ}ƒl[ƒWƒƒ‚É“o˜^‚·‚éŠÖ”
+#RTCã‚’ãƒãƒãƒ¼ã‚¸ãƒ£ã«ç™»éŒ²ã™ã‚‹é–¢æ•°
 ##
 def OOoDrawControlInit(manager):
   profile = OpenRTM_aist.Properties(defaults_str=ooodrawcontrol_spec)
@@ -447,7 +457,7 @@ def MyModuleInit(manager):
 
 
 ##
-#ƒIƒuƒWƒFƒNƒg‚ªƒ|[ƒg‚ÆŠÖ˜A•t‚¯‚³‚ê‚Ä‚¢‚é‚©‚Ì”»’è‚ÌŠÖ”
+#ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒãƒãƒ¼ãƒˆã¨é–¢é€£ä»˜ã‘ã•ã‚Œã¦ã„ã‚‹ã‹ã®åˆ¤å®šã®é–¢æ•°
 ##
 def JudgeDrawObjRTC(obj):
   
@@ -465,7 +475,7 @@ def JudgeDrawObjRTC(obj):
 
 
 ##
-# ƒCƒ“ƒ|[ƒg‚ğ’Ç‰Á‚·‚éŠÖ”
+# ã‚¤ãƒ³ãƒãƒ¼ãƒˆã‚’è¿½åŠ ã™ã‚‹é–¢æ•°
 ##
 
 def CompAddInPort(name, o_port, dlg_control):
@@ -488,7 +498,7 @@ def CompAddInPort(name, o_port, dlg_control):
           t_name = name + str(m_i) + str(m_j)
           
           if JudgeDrawObjRTC(obj) == True:
-            MyMsgBox('ƒGƒ‰[',u'Šù‚É‘¼‚Ìƒf[ƒ^ƒ|[ƒg‚ÆŠÖ˜A•t‚¯‚Ä‚¢‚Ü‚·')
+            MyMsgBox(SetCoding('ã‚¨ãƒ©ãƒ¼'),SetCoding('æ—¢ã«ä»–ã®ãƒ‡ãƒ¼ã‚¿ãƒãƒ¼ãƒˆã¨é–¢é€£ä»˜ã‘ã¦ã„ã¾ã™'))
             return False
           
           xo_control = dlg_control.getControl( m_ControlName.XoffsetBName )
@@ -515,12 +525,12 @@ def CompAddInPort(name, o_port, dlg_control):
           
           OOoRTC.draw_comp.m_addInPort(t_name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
 
-          t_str = str(m_i) + "ƒy[ƒW‚Ì" +  str(m_j) + "”Ô–Ú‚Ì}Œ`‚Æ" + name + "‚ğŠÖ˜A•t‚¯‚Ü‚µ‚½"
-          MyMsgBox('',t_str)
+          t_str = str(m_i) + "ãƒšãƒ¼ã‚¸ã®" +  str(m_j) + "ç•ªç›®ã®å›³å½¢ã¨" + name + "ã‚’é–¢é€£ä»˜ã‘ã¾ã—ãŸ"
+          MyMsgBox('',SetCoding(t_str))
     return True
 
 ##
-# RTC‹N“®‚ÌŠÖ”
+# RTCèµ·å‹•ã®é–¢æ•°
 ##
 
 def createOOoDrawComp():
@@ -542,7 +552,7 @@ def createOOoDrawComp():
       return
 
     
-    MyMsgBox('',u'RTC‚ğ‹N“®‚µ‚Ü‚µ‚½')
+    MyMsgBox('',SetCoding('RTCã‚’èµ·å‹•ã—ã¾ã—ãŸ'))
 
     LoadSheet()
     
@@ -551,7 +561,7 @@ def createOOoDrawComp():
 
 
 ##
-# ƒ|[ƒg‚ğÚ‘±‚·‚éŠÖ”
+# ãƒãƒ¼ãƒˆã‚’æ¥ç¶šã™ã‚‹é–¢æ•°
 ##
 
 def m_addport(obj1, obj2, c_name):
@@ -579,9 +589,9 @@ def m_addport(obj1, obj2, c_name):
     ret = obj2.connect(conprof)
 
 ##
-# ƒƒbƒZ[ƒWƒ{ƒbƒNƒX•\¦‚ÌŠÖ”
-# titleFƒEƒCƒ“ƒhƒE‚Ìƒ^ƒCƒgƒ‹
-# messageF•\¦‚·‚é•¶Í
+# ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒœãƒƒã‚¯ã‚¹è¡¨ç¤ºã®é–¢æ•°
+# titleï¼šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¿ã‚¤ãƒˆãƒ«
+# messageï¼šè¡¨ç¤ºã™ã‚‹æ–‡ç« 
 ##
 
 def MyMsgBox(title, message):
@@ -593,7 +603,7 @@ def MyMsgBox(title, message):
 
 
 ##
-# OpenOffice‚ğ‘€ì‚·‚é‚½‚ß‚ÌƒNƒ‰ƒX
+# OpenOfficeã‚’æ“ä½œã™ã‚‹ãŸã‚ã®ã‚¯ãƒ©ã‚¹
 ##
 
 class Bridge(object):
@@ -609,21 +619,21 @@ class Bridge(object):
     msgbox.dispose()
 
 ##
-# ƒl[ƒ~ƒ“ƒOƒT[ƒrƒX‚ÖÚ‘±‚·‚éŠÖ”
+# ãƒãƒ¼ãƒŸãƒ³ã‚°ã‚µãƒ¼ãƒ“ã‚¹ã¸æ¥ç¶šã™ã‚‹é–¢æ•°
 ##
 def SetNamingServer(s_name, orb):
     
     try:
         namingserver = CorbaNaming(orb, s_name)
     except:
-        MyMsgBox('ƒGƒ‰[',u'ƒl[ƒ~ƒ“ƒOƒT[ƒrƒX‚Ö‚ÌÚ‘±‚É¸”s‚µ‚Ü‚µ‚½')
+        MyMsgBox(SetCoding('ã‚¨ãƒ©ãƒ¼'),SetCoding('ãƒãƒ¼ãƒŸãƒ³ã‚°ã‚µãƒ¼ãƒ“ã‚¹ã¸ã®æ¥ç¶šã«å¤±æ•—ã—ã¾ã—ãŸ'))
         return None
     return namingserver
 
 ##
-# ƒcƒŠ[‚Å‘I‘ğ‚µ‚½ƒAƒCƒeƒ€‚ªƒ|[ƒg‚©‚Ç‚¤‚©”»’è‚·‚éŠÖ”
-# objectTreeFƒ_ƒCƒAƒƒO‚ÌƒcƒŠ[
-# _pathFƒ|[ƒg‚ÌƒpƒX‚ÌƒŠƒXƒg
+# ãƒ„ãƒªãƒ¼ã§é¸æŠã—ãŸã‚¢ã‚¤ãƒ†ãƒ ãŒãƒãƒ¼ãƒˆã‹ã©ã†ã‹åˆ¤å®šã™ã‚‹é–¢æ•°
+# objectTreeï¼šãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ãƒ„ãƒªãƒ¼
+# _pathï¼šãƒãƒ¼ãƒˆã®ãƒ‘ã‚¹ã®ãƒªã‚¹ãƒˆ
 ##
 
 def JudgePort(objectTree, _paths):
@@ -667,7 +677,7 @@ def JudgePort(objectTree, _paths):
 
 
 ##
-# ŠeRTC‚ÌƒpƒX‚ğæ“¾‚·‚éŠÖ”
+# å„RTCã®ãƒ‘ã‚¹ã‚’å–å¾—ã™ã‚‹é–¢æ•°
 ##
 def ListRecursive(context, rtclist, name, oParent, oTreeDataModel):
     
@@ -755,7 +765,7 @@ def rtc_get_rtclist(naming, rtclist, name, oParent, oTreeDataModel):
                        
                        
 ##
-# ƒ|[ƒg‚ÌƒpƒX‚ÌƒŠƒXƒg‚ğæ“¾‚·‚éŠÖ”
+# ãƒãƒ¼ãƒˆã®ãƒ‘ã‚¹ã®ãƒªã‚¹ãƒˆã‚’å–å¾—ã™ã‚‹é–¢æ•°
 ##
 def getPathList(name):
     if OOoRTC.mgr != None:
@@ -769,7 +779,7 @@ def getPathList(name):
     return None
 
 ##
-# ƒ_ƒCƒAƒƒO‚ÌƒcƒŠ[‚Éƒl[ƒ~ƒ“ƒOƒT[ƒo[‚ÌƒIƒuƒWƒFƒNƒg‚ğ“o˜^‚·‚éŠÖ”
+# ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ãƒ„ãƒªãƒ¼ã«ãƒãƒ¼ãƒŸãƒ³ã‚°ã‚µãƒ¼ãƒãƒ¼ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç™»éŒ²ã™ã‚‹é–¢æ•°
 ##
 
 def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
@@ -825,14 +835,14 @@ def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
 
 
 ##
-# OpenOffice Draw‚ğ‘€ì‚·‚é‚½‚ß‚ÌƒNƒ‰ƒX
+# OpenOffice Drawã‚’æ“ä½œã™ã‚‹ãŸã‚ã®ã‚¯ãƒ©ã‚¹
 ##
 
 class OOoDraw(Bridge):
   def __init__(self):
     Bridge.__init__(self)
     if not self._document.supportsService('com.sun.star.drawing.DrawingDocument'):
-      self.run_errordialog(title='ƒGƒ‰[', message='‚±‚Ìƒ}ƒNƒ‚ÍOpenOffice.org Draw‚Ì’†‚ÅÀs‚µ‚Ä‚­‚¾‚³‚¢')
+      self.run_errordialog(title='ã‚¨ãƒ©ãƒ¼', message='ã“ã®ãƒã‚¯ãƒ­ã¯OpenOffice.org Drawã®ä¸­ã§å®Ÿè¡Œã—ã¦ãã ã•ã„')
       raise NotOOoDrawException()
     self.__current_controller = self._document.CurrentController
     self.__drawpages = self._document.DrawPages
@@ -845,7 +855,7 @@ class OOoDraw(Bridge):
 
 
 ##
-# “Ç‚İ‚ñ‚¾•Û‘¶—pƒV[ƒg‚©‚çƒ|[ƒg‚ğì¬‚·‚éŠÖ”
+# èª­ã¿è¾¼ã‚“ã ä¿å­˜ç”¨ã‚·ãƒ¼ãƒˆã‹ã‚‰ãƒãƒ¼ãƒˆã‚’ä½œæˆã™ã‚‹é–¢æ•°
 ##
 
 def LoadSheet():
@@ -919,7 +929,7 @@ def LoadSheet():
 
 
 ##
-# ì¬‚µ‚½ƒ|[ƒg‚Ìİ’è‚ğ•Û‘¶‚·‚éŠÖ”
+# ä½œæˆã—ãŸãƒãƒ¼ãƒˆã®è¨­å®šã‚’ä¿å­˜ã™ã‚‹é–¢æ•°
 ##
 
 def UpdateSaveSheet():
@@ -961,12 +971,12 @@ def UpdateSaveSheet():
     st_control.Text = text
 
 ##
-# ƒcƒŠ[‚Ì‘I‘ğˆÊ’u‚ª•Ï‚í‚Á‚½‚Æ‚«‚ÉŠeƒeƒLƒXƒgƒ{ƒbƒNƒX‚Ì“à—e‚ğ•ÏX‚·‚éŠÖ”
+# ãƒ„ãƒªãƒ¼ã®é¸æŠä½ç½®ãŒå¤‰ã‚ã£ãŸã¨ãã«å„ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã®å†…å®¹ã‚’å¤‰æ›´ã™ã‚‹é–¢æ•°
 ##
 def UpdateTree(dlg_control, m_port):
     
     info_control = dlg_control.getControl( m_ControlName.TextFName )
-    info_control.setText(u'ì¬Ï‚İ')
+    info_control.setText(SetCoding('ä½œæˆæ¸ˆã¿'))
     
     xo_control = dlg_control.getControl( m_ControlName.XoffsetBName )
     xo_control.setText(str(m_port._ox))
@@ -984,15 +994,15 @@ def UpdateTree(dlg_control, m_port):
     ys_control.setText(str(m_port._sy))
 
 ##
-# ƒ|[ƒg‚ğíœ‚µ‚½‚Æ‚«‚ÉŠeƒeƒLƒXƒgƒ{ƒbƒNƒX‚ğ•ÏX‚·‚éŠÖ”
+# ãƒãƒ¼ãƒˆã‚’å‰Šé™¤ã—ãŸã¨ãã«å„ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã‚’å¤‰æ›´ã™ã‚‹é–¢æ•°
 ##
 
 def ClearInfo(dlg_control):
     info_control = dlg_control.getControl( m_ControlName.TextFName )
-    info_control.setText(u'–¢ì¬')
+    info_control.setText(SetCoding('æœªä½œæˆ'))
 
 ##
-# ƒ|[ƒgì¬ƒ{ƒ^ƒ“‚ÌƒR[ƒ‹ƒoƒbƒN
+# ãƒãƒ¼ãƒˆä½œæˆãƒœã‚¿ãƒ³ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
 ##
 
 class CreatePortListener( unohelper.Base, XActionListener):
@@ -1045,11 +1055,11 @@ class CreatePortListener( unohelper.Base, XActionListener):
             UpdateSaveSheet()
 
             info_control = self.dlg_control.getControl( m_ControlName.TextFName )
-            info_control.setText(u'ì¬Ï‚İ')
+            info_control.setText(SetCoding('ä½œæˆæ¸ˆã¿'))
         
 
 ##
-# ƒcƒŠ[ì¬ƒ{ƒ^ƒ“‚ÌƒR[ƒ‹ƒoƒbƒN
+# ãƒ„ãƒªãƒ¼ä½œæˆãƒœã‚¿ãƒ³ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
 ##
 
 class SetRTCTreeListener( unohelper.Base, XActionListener ):
@@ -1065,7 +1075,7 @@ class SetRTCTreeListener( unohelper.Base, XActionListener ):
 
 
 ##
-# ƒcƒŠ[‚Ìƒ}ƒEƒX‚Å‚Ì‘€ì‚É‘Î‚·‚éƒR[ƒ‹ƒoƒbƒN
+# ãƒ„ãƒªãƒ¼ã®ãƒã‚¦ã‚¹ã§ã®æ“ä½œã«å¯¾ã™ã‚‹ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
 ##
 
 class MySelectListener( unohelper.Base, XSelectionChangeListener):
@@ -1086,14 +1096,14 @@ class MySelectListener( unohelper.Base, XSelectionChangeListener):
             return
 
         info_control = self.dlg_control.getControl( m_ControlName.TextFName )
-        info_control.setText(u'–¢ì¬')
+        info_control.setText(SetCoding('æœªä½œæˆ'))
 
 
 
 
 
 ##
-# ƒ|[ƒgíœƒ{ƒ^ƒ“‚ÌƒR[ƒ‹ƒoƒbƒN
+# ãƒãƒ¼ãƒˆå‰Šé™¤ãƒœã‚¿ãƒ³ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
 ##
 class DeleteListener( unohelper.Base, XActionListener ):
     def __init__(self, dlg_control, _paths):
@@ -1109,17 +1119,17 @@ class DeleteListener( unohelper.Base, XActionListener ):
                 if i._port_a[0] == t_comp[0]:
                     OOoRTC.draw_comp.m_removeInComp(i)
                     ClearInfo(self.dlg_control)
-                    MyMsgBox('',u'íœ‚µ‚Ü‚µ‚½')
+                    MyMsgBox('',SetCoding('å‰Šé™¤ã—ã¾ã—ãŸ'))
                     return
             UpdateSaveSheet()
         else:
-            MyMsgBox('ƒGƒ‰[',u'ƒf[ƒ^ƒ|[ƒg‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢')
+            MyMsgBox(SetCoding('ã‚¨ãƒ©ãƒ¼'),SetCoding('ãƒ‡ãƒ¼ã‚¿ãƒãƒ¼ãƒˆã‚’é¸æŠã—ã¦ãã ã•ã„'))
             return
         
-        MyMsgBox('ƒGƒ‰[',u'íœÏ‚İ‚Å‚·')
+        MyMsgBox(SetCoding('ã‚¨ãƒ©ãƒ¼'),SetCoding('å‰Šé™¤æ¸ˆã¿ã§ã™'))
 
 ##
-# ˆÊ’u‚Ì‰Šú‰»ƒ{ƒ^ƒ“‚ÌƒR[ƒ‹ƒoƒbƒN
+# ä½ç½®ã®åˆæœŸåŒ–ãƒœã‚¿ãƒ³ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
 ##
 class SetPosListener( unohelper.Base, XActionListener ):
     def __init__(self, dlg_control, _paths):
@@ -1144,14 +1154,14 @@ class SetPosListener( unohelper.Base, XActionListener ):
                     i._obj.setPosition(t_pos)
                     return
         else:
-            MyMsgBox('ƒGƒ‰[',u'ƒf[ƒ^ƒ|[ƒg‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢')
+            MyMsgBox(SetCoding('ã‚¨ãƒ©ãƒ¼'),SetCoding('ãƒ‡ãƒ¼ã‚¿ãƒãƒ¼ãƒˆã‚’é¸æŠã—ã¦ãã ã•ã„'))
             return
         
-        MyMsgBox('ƒGƒ‰[',u'íœÏ‚İ‚Å‚·')
+        MyMsgBox(SetCoding('ã‚¨ãƒ©ãƒ¼'),SetCoding('å‰Šé™¤æ¸ˆã¿ã§ã™'))
 
 
 ##
-# ˆÊ’u‚Ì‘S‰Šú‰»ƒ{ƒ^ƒ“‚ÌƒR[ƒ‹ƒoƒbƒN
+# ä½ç½®ã®å…¨åˆæœŸåŒ–ãƒœã‚¿ãƒ³ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
 ##
 class SetAllPosListener( unohelper.Base, XActionListener ):
     def __init__(self, dlg_control):
@@ -1168,7 +1178,7 @@ class SetAllPosListener( unohelper.Base, XActionListener ):
 
 
 ##
-# ƒ_ƒCƒAƒƒOì¬‚ÌŠÖ”
+# ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ä½œæˆã®é–¢æ•°
 ##
 def SetDialog():
     try:
@@ -1178,10 +1188,10 @@ def SetDialog():
       
     sobj = draw.document.CurrentSelection
     if sobj == None:
-        MyMsgBox('ƒGƒ‰[', u'}Œ`‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢')
+        MyMsgBox(SetCoding('ã‚¨ãƒ©ãƒ¼'), SetCoding('å›³å½¢ã‚’é¸æŠã—ã¦ãã ã•ã„'))
         return
     elif sobj.Count < 1:
-        MyMsgBox('ƒGƒ‰[', u'}Œ`‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢')
+        MyMsgBox(SetCoding('ã‚¨ãƒ©ãƒ¼'), SetCoding('å›³å½¢ã‚’é¸æŠã—ã¦ãã ã•ã„'))
         return
 
   
