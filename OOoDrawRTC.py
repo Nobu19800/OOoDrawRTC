@@ -574,6 +574,7 @@ def m_addport(obj1, obj2, c_name):
 # メッセージボックス表示の関数
 # title：ウインドウのタイトル
 # message：表示する文章
+# http://d.hatena.ne.jp/kakurasan/20100408/p1のソースコード(GPLv2)の一部
 ##
 
 def MyMsgBox(title, message):
@@ -586,6 +587,7 @@ def MyMsgBox(title, message):
 
 ##
 # OpenOfficeを操作するためのクラス
+# http://d.hatena.ne.jp/kakurasan/20100408/p1のソースコード(GPLv2)の一部
 ##
 
 class Bridge(object):
@@ -818,6 +820,7 @@ def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
 
 ##
 # OpenOffice Drawを操作するためのクラス
+# http://d.hatena.ne.jp/kakurasan/20100408/p1のソースコード(GPLv2)の一部を改変
 ##
 
 class OOoDraw(Bridge):
