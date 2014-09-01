@@ -101,6 +101,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     OpenRTM_aist.DataFlowComponentBase.__init__(self, manager)
     
     self._InPorts = {}
+    self._OutPorts = {}
 
     
 
@@ -158,15 +159,44 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
         m_addport(m_inport._objref, m_outport[1], name)
         self._InPorts[name] = MyPortObject(m_inport, m_data_i, name, offset, scale, pos, obj, m_outport, m_data_type)
 
+
+  ##
+  # アウトポート追加の関数
+  # name：インポートの名前
+  # m_inport：接続するアウトポート
+  # col：データを書き込む行番号
+  # sn:接続するアウトポートのパス
+  ##
+  def m_addOutPort(self, name, m_inport, offset, scale, pos, obj):
+      m_data_o, m_data_type =  GetDataType(m_inport[1])
+      
+      if m_data_o:
+        m_outport = OpenRTM_aist.OutPort(name, m_data_o)
+        self.addOutPort(name, m_outport)
+        m_addport(m_outport._objref, m_inport[1], name)
+        self._OutPorts[name] = MyPortObject(m_outport, m_data_o, name, offset, scale, pos, obj, m_inport, m_data_type)
+
+
   ##
   # インポート削除の関数
-  # outport：削除するインポート
+  # inport：削除するインポート
   ##
 
   def m_removeInComp(self, inport):
       inport._port.disconnect_all()
       self.removePort(inport._port)
       del self._InPorts[inport._name]
+
+
+  ##
+  # アウトポート削除の関数
+  # outport：削除するアウトポート
+  ##
+
+  def m_removeOutComp(self, outport):
+      outport._port.disconnect_all()
+      self.removePort(outport._port)
+      del self._OutPorts[outport._name]
 
 
   ##
@@ -187,6 +217,14 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     basic = m_DataType.basic
     extended = m_DataType.extended
 
+
+    for n,op in self._OutPorts.items():
+      if JudgeRTCObjDraw(op._obj):
+        pass
+      else:
+        self.m_removeInComp(op)
+        UpdateSaveSheet()
+
     for n,ip in self._InPorts.items():
       if JudgeRTCObjDraw(ip._obj):
         pass
@@ -194,6 +232,40 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
         self.m_removeInComp(ip)
         UpdateSaveSheet()
 
+
+    
+
+
+
+
+    for n,op in self._OutPorts.items():
+        px, py = ObjGetPos(op)
+        rot = float(op._obj.RotateAngle + op._or)/100.*3.14159/180.
+        
+        if op._dataType[1] == basic:
+            op._data.data = [px, py, rot]
+            
+            
+            
+        elif op._dataType[1] == extended:
+            if op._dataType[2] == 'TimedPoint2D':
+                op._data.x = px
+                op._data.y = py
+            elif op._dataType[2] == 'TimedVector2D':
+                op._data.x = px
+                op._data.y = py
+            elif op._dataType[2] == 'TimedPose2D':
+                op._data.position.x = px
+                op._data.position.y = py
+                op._data.heading = rot
+            elif op._dataType[2] == 'TimedGeometry2D':
+                op._data.pose.position.x = px
+                op._data.pose.position.y = py
+                op._data.pose.heading = rot
+                
+              
+        OpenRTM_aist.setTimestamp(op._data)
+        op._port.write()
 
     
     
@@ -394,8 +466,21 @@ def Set_Rate():
         
       
       
+def ObjGetPos(_port):
+  size = _port._obj.Size
 
-      
+  t_pos = _port._obj.getPosition()
+          
+  t_rot = math.atan2(size.Height, size.Width)
+
+  rot = -(_port._obj.RotateAngle / 100.) * 3.141592/180. + t_rot
+  leng = math.sqrt(size.Width*size.Width + size.Height*size.Height)
+
+  tx = t_pos.X/_port._sx*100. + _port._ox + leng*math.cos(rot)/2.
+
+  ty = t_pos.Y/_port._sy*100. + _port._oy + leng*math.sin(rot)/2.
+
+  return tx, ty
 
 
 def ObjSetPos(_port, _x, _y):
@@ -464,8 +549,11 @@ def JudgeDrawObjRTC(obj):
   if OOoRTC.draw_comp:
     for n,i in OOoRTC.draw_comp._InPorts.items():
       if i._obj == obj:
-        return i
-  return None
+        return i, "DataInPort"
+    for n,o in OOoRTC.draw_comp._OutPorts.items():
+      if o._obj == obj:
+        return o, "DataOutPort"
+  return None, None
 
 
 
@@ -475,10 +563,10 @@ def JudgeDrawObjRTC(obj):
 
 
 ##
-# インポートを追加する関数
+# データポートを追加する関数
 ##
 
-def CompAddInPort(name, o_port, dlg_control, obj):
+def CompAddPort(name, o_port, dlg_control, obj, d_type):
 
     if OOoRTC.draw_comp == None:
         return False
@@ -505,8 +593,10 @@ def CompAddInPort(name, o_port, dlg_control, obj):
 
           
 
-          
-          OOoRTC.draw_comp.m_addInPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
+          if d_type == 'DataInPort':
+              OOoRTC.draw_comp.m_addOutPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
+          elif d_type== 'DataOutPort':
+              OOoRTC.draw_comp.m_addInPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
 
           
     return True
@@ -908,7 +998,8 @@ def LoadSheet():
               
               
               if flag:
-                
+                if props['port.port_type'] == 'DataInPort':
+                    OOoRTC.draw_comp.m_addOutPort(F_Name, p, [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj)
                 if props['port.port_type'] == 'DataOutPort':
                     OOoRTC.draw_comp.m_addInPort(F_Name, p, [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj)
 
@@ -928,28 +1019,34 @@ def UpdateSaveSheet():
     st_control = oDrawPage.getForms().getByIndex(0).getByName('SaveTextBox')
     
     text = ''
-    
-    for n,i in OOoRTC.draw_comp._InPorts.items():
-      m_i,m_j = JudgeRTCObjDraw(i._obj)
+
+    PortList = []
+    for n,i in OOoRTC.draw_comp._InPorts.items(): 
+        PortList.append(i)
+    for n,o in OOoRTC.draw_comp._OutPorts.items(): 
+        PortList.append(o)
+        
+    for p in PortList:
+      m_i,m_j = JudgeRTCObjDraw(p._obj)
       
       if m_i != None:
         
-        for j in range(0, len(i._port_a[0])):
+        for j in range(0, len(p._port_a[0])):
           if j == 0:
-            text = text + ';' + i._port_a[0][j]
+            text = text + ';' + p._port_a[0][j]
           else:
-            text = text + ':' + i._port_a[0][j]
+            text = text + ':' + p._port_a[0][j]
         
         text = text + '#' + str(m_i)
         text = text + '#' + str(m_j)
-        text = text + '#' + str(i._ox)
-        text = text + '#' + str(i._oy)
-        text = text + '#' + str(i._or)
-        text = text + '#' + str(i._sx)
-        text = text + '#' + str(i._sy)
-        text = text + '#' + str(i._x)
-        text = text + '#' + str(i._y)
-        text = text + '#' + str(i._r)
+        text = text + '#' + str(p._ox)
+        text = text + '#' + str(p._oy)
+        text = text + '#' + str(p._or)
+        text = text + '#' + str(p._sx)
+        text = text + '#' + str(p._sy)
+        text = text + '#' + str(p._x)
+        text = text + '#' + str(p._y)
+        text = text + '#' + str(p._r)
         
 
     
@@ -998,6 +1095,8 @@ class CreatePortListener( unohelper.Base, XActionListener):
 
     def actionPerformed(self, actionEvent):
 
+        
+
         try:
             draw = OOoDraw()
         except NotOOoDrawException:
@@ -1008,7 +1107,9 @@ class CreatePortListener( unohelper.Base, XActionListener):
         if sobj:
             if sobj.Count > 0:
                 obj = sobj.getByIndex(0)
-                jport = JudgeDrawObjRTC(obj)
+                
+                jport, d_type = JudgeDrawObjRTC(obj)
+                
                 if jport:
                     xo_control = self.dlg_control.getControl( m_ControlName.XoffsetBName )
                     yo_control = self.dlg_control.getControl( m_ControlName.YoffsetBName )
@@ -1040,12 +1141,13 @@ class CreatePortListener( unohelper.Base, XActionListener):
                     
                     profile = t_comp[1].get_port_profile()
                     props = nvlist_to_dict(profile.properties)
-                    if props['port.port_type'] == 'DataInPort':
-                        pass
-                    elif props['port.port_type'] == 'DataOutPort':                
-                        CompAddInPort(F_Name, t_comp, self.dlg_control, obj)
-                        t_str = str(m_i) + "ページの" +  str(m_j) + "番目の図形と" + t_comp[0][-2] + t_comp[0][-1] + "を関連付けました"
-                        MyMsgBox('',SetCoding(t_str))
+
+                    
+                    CompAddPort(F_Name, t_comp, self.dlg_control, obj, props['port.port_type'])
+                    
+                        
+                    t_str = str(m_i) + "ページの" +  str(m_j) + "番目の図形と" + t_comp[0][-2] + t_comp[0][-1] + "を関連付けました"
+                    MyMsgBox('',SetCoding(t_str))
                         
                         
 
@@ -1092,7 +1194,7 @@ class MySelectListener( unohelper.Base, XSelectionChangeListener):
         if sobj:
             if sobj.Count > 0:
                 obj = sobj.getByIndex(0)
-                jport = JudgeDrawObjRTC(obj)
+                jport, d_type = JudgeDrawObjRTC(obj)
                 if jport:
                     UpdateTree(self.dlg_control, jport)
                     return
@@ -1125,9 +1227,12 @@ class DeleteListener( unohelper.Base, XActionListener ):
         if sobj:
             if sobj.Count > 0:
                 obj = sobj.getByIndex(0)
-                jport = JudgeDrawObjRTC(obj)
+                jport, d_type = JudgeDrawObjRTC(obj)
                 if jport:
-                    OOoRTC.draw_comp.m_removeInComp(jport)
+                    if d_type == "DataInPort":
+                        OOoRTC.draw_comp.m_removeInComp(jport)
+                    else:
+                        OOoRTC.draw_comp.m_removeOutComp(jport)
                     ClearInfo(self.dlg_control)
                     MyMsgBox('',SetCoding('削除しました'))
 
