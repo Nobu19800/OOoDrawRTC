@@ -103,6 +103,8 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     self._InPorts = {}
     self._OutPorts = {}
 
+    self.sleepTime = 0
+
     
 
     try:
@@ -209,11 +211,22 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     
     return RTC.RTC_OK
 
+  def onActivated(self, ec_id):
+      m_ec = self.get_owned_contexts()
+      
+ 
+      rate = m_ec[0].get_rate()
+      if 3 < rate:
+          self.sleepTime = 1./3. - 1./rate
+
+      return RTC.RTC_OK
+
   ##
   # 周期処理用コールバック関数
   ##
   
   def onExecute(self, ec_id):
+    
     basic = m_DataType.basic
     extended = m_DataType.extended
 
@@ -296,6 +309,9 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
             
               
 
+
+    time.sleep(self.sleepTime)
+    
     return RTC.RTC_OK
 
   ##
@@ -476,9 +492,9 @@ def ObjGetPos(_port):
   rot = -(_port._obj.RotateAngle / 100.) * 3.141592/180. + t_rot
   leng = math.sqrt(size.Width*size.Width + size.Height*size.Height)
 
-  tx = t_pos.X/_port._sx*100. + _port._ox + leng*math.cos(rot)/2.
+  tx = t_pos.X/_port._sx*100./10. + _port._ox + leng*math.cos(rot)/2.
 
-  ty = t_pos.Y/_port._sy*100. + _port._oy + leng*math.sin(rot)/2.
+  ty = t_pos.Y/_port._sy*100./10. + _port._oy + leng*math.sin(rot)/2.
 
   return tx, ty
 
@@ -491,8 +507,8 @@ def ObjSetPos(_port, _x, _y):
     
   rot = -(_port._obj.RotateAngle / 100.) * 3.141592/180. + t_rot
   leng = math.sqrt(size.Width*size.Width + size.Height*size.Height)
-  t_pos.X = long(_x*_port._sx/100. - leng*math.cos(rot)/2.) + _port._ox
-  t_pos.Y = long(_y*_port._sy/100. - leng*math.sin(rot)/2.) + _port._oy
+  t_pos.X = long(_x*_port._sx/100.*10. - leng*math.cos(rot)/2.) + _port._ox
+  t_pos.Y = long(_y*_port._sy/100.*10. - leng*math.sin(rot)/2.) + _port._oy
                 
   _port._obj.setPosition(t_pos)
 
