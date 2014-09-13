@@ -8,11 +8,14 @@ import random
 import commands
 import math
 
+from os.path import expanduser
+sv = sys.version_info
 
 if os.name == 'posix':
-    sys.path += ['./OOoRTC', '/usr/lib/python2.6/dist-packages', '/usr/lib/python2.6/dist-packages/rtctree/rtmidl']
+    home = expanduser("~")
+    sys.path += [home+'/OOoRTC', '/usr/lib/python2.' + str(sv[1]) + '/dist-packages', '/usr/lib/python2.' + str(sv[1]) + '/dist-packages/rtctree/rtmidl']
 elif os.name == 'nt':
-    sys.path += ['.\\OOoRTC', 'C:\\Python26\\lib\\site-packages', 'C:\\Python26\\Lib\\site-packages\\OpenRTM_aist\\RTM_IDL', 'C:\\Python26\\lib\\site-packages\\rtctree\\rtmidl']
+    sys.path += ['.\\OOoRTC', 'C:\\Python2' + str(sv[1]) + '\\lib\\site-packages', 'C:\\Python2' + str(sv[1]) + '\\Lib\\site-packages\\OpenRTM_aist\\RTM_IDL', 'C:\\Python2' + str(sv[1]) + '\\lib\\site-packages\\rtctree\\rtmidl']
 
 
 import time
