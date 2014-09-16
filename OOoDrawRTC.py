@@ -54,12 +54,11 @@ import OOoRTC
 imp_id = "OOoDrawControl"# + str(comp_num)
 
 
-def SetCoding(m_str):
-    if os.name == 'posix':
-        return m_str
-    elif os.name == 'nt':
-        return m_str.decode('utf-8').encode('cp932')
 
+
+##
+# ウィジェット名
+##
 class m_ControlName:
     XoffsetBName = "Xoffset"
     YoffsetBName = "Yoffset"
@@ -119,6 +118,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # 実行周期を設定する関数
+  # rate：実行周期
   ##
   def m_setRate(self, rate):
       m_ec = self.get_owned_contexts()
@@ -138,22 +138,16 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
       m_ec = self.get_owned_contexts()
       m_ec[0].deactivate_component(self._objref)
 
-  ##
-  # アウトポート追加の関数
-  # name：アウトポートの名前
-  # m_inport：接続するインポート
-  # col：データを書き込む行番号
-  # sn；接続するインポートのパス
-  ##
-  def m_addOutPort(self, name, m_inport, col, sn):
-      return
+  
 
   ##
   # インポート追加の関数
   # name：インポートの名前
-  # m_inport：接続するアウトポート
-  # col：データを書き込む行番号
-  # sn；接続するアウトポートのパス
+  # m_outport：接続するアウトポート
+  # offset：位置、角度のオフセット[X,Y,R]
+  # scale：位置の拡大率[X,Y]
+  # pos：図形の初期位置、角度[X,Y,R]
+  # obj：図形のオブジェクト
   ##
   def m_addInPort(self, name, m_outport, offset, scale, pos, obj):
       m_data_i, m_data_type =  GetDataType(m_outport[1])
@@ -167,10 +161,11 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # アウトポート追加の関数
-  # name：インポートの名前
-  # m_inport：接続するアウトポート
-  # col：データを書き込む行番号
-  # sn:接続するアウトポートのパス
+  # name：アウトポートの名前
+  # offset：位置、角度のオフセット[X,Y,R]
+  # scale：位置の拡大率[X,Y]
+  # pos：図形の初期位置、角度[X,Y,R]
+  # obj：図形のオブジェクト
   ##
   def m_addOutPort(self, name, m_inport, offset, scale, pos, obj):
       m_data_o, m_data_type =  GetDataType(m_inport[1])
@@ -328,6 +323,15 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
 ##
 # 追加するポートのクラス
+# port：データポート
+# data：データ
+# name：名前
+# offset：位置、角度のオフセット[X,Y,R]
+# scale：位置の拡大率[X,Y]
+# pos：図形の初期位置、角度[X,Y,R]
+# obj：図形のオブジェクト
+# port_a：接続するデータポート
+# m_data_Type：データ型
 ##
 
 class MyPortObject:
@@ -361,7 +365,9 @@ class m_DataType:
 
 
 ##
-# データ型を返す関数
+# データポートのデータ型を返す関数
+# m_port：データポート
+# 戻り値：データオブジェクト、[データ型、データのタイプ、データ型の名前]
 ##
 
 def GetDataType(m_port):
@@ -484,7 +490,11 @@ def Set_Rate():
         
         
       
-      
+##
+# 図形の位置を取得
+# _port：追加したデータポート
+# 戻り値：図形の位置(X,Y)
+##
 def ObjGetPos(_port):
   size = _port._obj.Size
 
@@ -501,7 +511,11 @@ def ObjGetPos(_port):
 
   return tx, ty
 
-
+##
+# 図形の位置を設定
+# _port：追加したデータポート
+# _x,_y：設定する位置
+##
 def ObjSetPos(_port, _x, _y):
   size = _port._obj.Size
               
@@ -518,7 +532,9 @@ def ObjSetPos(_port, _x, _y):
 
 
 ##
-# 設定した図形が存在するか判定する関数
+# 設定した図形がどのページに存在するか取得する関数
+# obj：図形オブジェクト
+# 戻り値：図形のページ番号、図形番号
 ##
 def JudgeRTCObjDraw(obj):
   
@@ -561,7 +577,9 @@ def MyModuleInit(manager):
 
 
 ##
-#オブジェクトがポートと関連付けされているかの判定の関数
+# オブジェクトがポートと関連付けされているかの判定の関数
+# obj：図形オブジェクト
+# 戻り値：データポートとデータポートのタイプ
 ##
 def JudgeDrawObjRTC(obj):
   
@@ -583,6 +601,11 @@ def JudgeDrawObjRTC(obj):
 
 ##
 # データポートを追加する関数
+# o_port：接続するデータポート
+# dlg_control：ダイアログオブジェクト
+# obj：図形オブジェクト
+# d_type：データポートのタイプ
+# 戻り値：成功ならばTrue、失敗ならばFalse
 ##
 
 def CompAddPort(name, o_port, dlg_control, obj, d_type):
@@ -643,7 +666,7 @@ def createOOoDrawComp():
       return
 
     
-    MyMsgBox('',SetCoding('RTCを起動しました'))
+    MyMsgBox('',OOoRTC.SetCoding('RTCを起動しました','utf-8'))
 
     LoadSheet()
     
@@ -653,6 +676,8 @@ def createOOoDrawComp():
 
 ##
 # ポートを接続する関数
+# obj1、obj2：接続するデータポート
+# c_name：コネクタ名
 ##
 
 def m_addport(obj1, obj2, c_name):
@@ -719,7 +744,7 @@ def SetNamingServer(s_name, orb):
     try:
         namingserver = CorbaNaming(orb, s_name)
     except:
-        MyMsgBox(SetCoding('エラー'),SetCoding('ネーミングサービスへの接続に失敗しました'))
+        MyMsgBox(OOoRTC.SetCoding('エラー','utf-8'),OOoRTC.SetCoding('ネーミングサービスへの接続に失敗しました','utf-8'))
         return None
     return namingserver
 
@@ -771,6 +796,10 @@ def JudgePort(objectTree, _paths):
 
 ##
 # 各RTCのパスを取得する関数
+# rtclist：データポートのリスト
+# name：現在のパス名
+# oParent：ツリーの現在のオブジェクト
+# oTreeDataModel：ツリーオブジェクト
 ##
 def ListRecursive(context, rtclist, name, oParent, oTreeDataModel):
     
@@ -859,6 +888,8 @@ def rtc_get_rtclist(naming, rtclist, name, oParent, oTreeDataModel):
                        
 ##
 # ポートのパスのリストを取得する関数
+# name：ネームサーバーの名前
+# 戻り値：ポートのパスのリスト
 ##
 def getPathList(name):
     if OOoRTC.mgr != None:
@@ -1077,7 +1108,7 @@ def UpdateSaveSheet():
 def UpdateTree(dlg_control, m_port):
     
     info_control = dlg_control.getControl( m_ControlName.TextFName )
-    info_control.setText(SetCoding('作成済み'))
+    info_control.setText(OOoRTC.SetCoding('作成済み','utf-8'))
     
     xo_control = dlg_control.getControl( m_ControlName.XoffsetBName )
     xo_control.setText(str(m_port._ox))
@@ -1100,7 +1131,7 @@ def UpdateTree(dlg_control, m_port):
 
 def ClearInfo(dlg_control):
     info_control = dlg_control.getControl( m_ControlName.TextFName )
-    info_control.setText(SetCoding('未作成'))
+    info_control.setText(OOoRTC.SetCoding('未作成','utf-8'))
 
 ##
 # ポート作成ボタンのコールバック
@@ -1166,7 +1197,7 @@ class CreatePortListener( unohelper.Base, XActionListener):
                     
                         
                     t_str = str(m_i) + "ページの" +  str(m_j) + "番目の図形と" + t_comp[0][-2] + t_comp[0][-1] + "を関連付けました"
-                    MyMsgBox('',SetCoding(t_str))
+                    MyMsgBox('',OOoRTC.SetCoding(t_str,'utf-8'))
                         
                         
 
@@ -1175,7 +1206,7 @@ class CreatePortListener( unohelper.Base, XActionListener):
                     UpdateSaveSheet()
 
                     info_control = self.dlg_control.getControl( m_ControlName.TextFName )
-                    info_control.setText(SetCoding('作成済み'))
+                    info_control.setText(OOoRTC.SetCoding('作成済み','utf-8'))
         
 
 ##
@@ -1221,7 +1252,7 @@ class MySelectListener( unohelper.Base, XSelectionChangeListener):
             return
 
         info_control = self.dlg_control.getControl( m_ControlName.TextFName )
-        info_control.setText(SetCoding('未作成'))
+        info_control.setText(OOoRTC.SetCoding('未作成','utf-8'))
 
 
 
@@ -1253,7 +1284,7 @@ class DeleteListener( unohelper.Base, XActionListener ):
                     else:
                         OOoRTC.draw_comp.m_removeOutComp(jport)
                     ClearInfo(self.dlg_control)
-                    MyMsgBox('',SetCoding('削除しました'))
+                    MyMsgBox('',OOoRTC.SetCoding('削除しました','utf-8'))
 
                     UpdateSaveSheet()
                     return
@@ -1261,7 +1292,7 @@ class DeleteListener( unohelper.Base, XActionListener ):
             
         
         
-        MyMsgBox(SetCoding('エラー'),SetCoding('削除済みです'))
+        MyMsgBox(OOoRTC.SetCoding('エラー','utf-8'),OOoRTC.SetCoding('削除済みです','utf-8'))
 
 ##
 # 位置の初期化ボタンのコールバック
@@ -1289,10 +1320,10 @@ class SetPosListener( unohelper.Base, XActionListener ):
                     i._obj.setPosition(t_pos)
                     return
         else:
-            MyMsgBox(SetCoding('エラー'),SetCoding('データポートを選択してください'))
+            MyMsgBox(OOoRTC.SetCoding('エラー','utf-8'),OOoRTC.SetCoding('データポートを選択してください','utf-8'))
             return
         
-        MyMsgBox(SetCoding('エラー'),SetCoding('削除済みです'))
+        MyMsgBox(OOoRTC.SetCoding('エラー','utf-8'),OOoRTC.SetCoding('削除済みです','utf-8'))
 
 
 ##
@@ -1323,10 +1354,10 @@ def SetDialog():
       
     sobj = draw.document.CurrentSelection
     if sobj == None:
-        MyMsgBox(SetCoding('エラー'), SetCoding('図形を選択してください'))
+        MyMsgBox(OOoRTC.SetCoding('エラー','utf-8'), OOoRTC.SetCoding('図形を選択してください','utf-8'))
         return
     elif sobj.Count < 1:
-        MyMsgBox(SetCoding('エラー'), SetCoding('図形を選択してください'))
+        MyMsgBox(OOoRTC.SetCoding('エラー','utf-8'), OOoRTC.SetCoding('図形を選択してください','utf-8'))
         return
 
   
