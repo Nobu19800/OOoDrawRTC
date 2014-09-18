@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+##
+#
+# @file OOoDrawRTC.py
+
 import optparse
 import sys,os,platform
 import re
@@ -57,8 +61,8 @@ imp_id = "OOoDrawControl"# + str(comp_num)
 
 
 ##
-# ウィジェット名
-##
+# @brief ウィジェット名
+#
 class m_ControlName:
     XoffsetBName = "Xoffset"
     YoffsetBName = "Yoffset"
@@ -94,9 +98,11 @@ ooodrawcontrol_spec = ["implementation_id", imp_id,
 
 
 
+
 ##
-# OpenOffice Drawを操作するためのRTCのクラス
-##
+# @class OOoDrawControl
+# @brief OpenOffice Drawを操作するためのRTCのクラス
+#
 
 class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   def __init__(self, manager):
@@ -117,23 +123,26 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     return
 
   ##
-  # 実行周期を設定する関数
-  # rate：実行周期
-  ##
+  # @brief 実行周期を設定する関数
+  # @param self
+  # @param rate：実行周期
+  #
   def m_setRate(self, rate):
       m_ec = self.get_owned_contexts()
       m_ec[0].set_rate(rate)
 
   ##
-  # 活性化するための関数
-  ## 
+  # @brief 活性化するための関数
+  # @param self
+  #
   def m_activate(self):
       m_ec = self.get_owned_contexts()
       m_ec[0].activate_component(self._objref)
 
   ##
-  # 不活性化するための関数
-  ##
+  # @brief 不活性化するための関数
+  # @param self
+  #
   def m_deactivate(self):
       m_ec = self.get_owned_contexts()
       m_ec[0].deactivate_component(self._objref)
@@ -141,14 +150,15 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   
 
   ##
-  # インポート追加の関数
-  # name：インポートの名前
-  # m_outport：接続するアウトポート
-  # offset：位置、角度のオフセット[X,Y,R]
-  # scale：位置の拡大率[X,Y]
-  # pos：図形の初期位置、角度[X,Y,R]
-  # obj：図形のオブジェクト
-  ##
+  # @brief インポート追加の関数
+  # @param self
+  # @param name インポートの名前
+  # @param m_outport 接続するアウトポート
+  # @param offset 位置、角度のオフセット[X,Y,R]
+  # @param scale 位置の拡大率[X,Y]
+  # @param pos 図形の初期位置、角度[X,Y,R]
+  # @param obj 図形のオブジェクト
+  #
   def m_addInPort(self, name, m_outport, offset, scale, pos, obj):
       m_data_i, m_data_type =  GetDataType(m_outport[1])
       
@@ -160,13 +170,15 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
 
   ##
-  # アウトポート追加の関数
-  # name：アウトポートの名前
-  # offset：位置、角度のオフセット[X,Y,R]
-  # scale：位置の拡大率[X,Y]
-  # pos：図形の初期位置、角度[X,Y,R]
-  # obj：図形のオブジェクト
-  ##
+  # @brief アウトポート追加の関数
+  # @param self
+  # @param name インポートの名前
+  # @param m_outport 接続するアウトポート
+  # @param offset 位置、角度のオフセット[X,Y,R]
+  # @param scale 位置の拡大率[X,Y]
+  # @param pos 図形の初期位置、角度[X,Y,R]
+  # @param obj 図形のオブジェクト
+  #
   def m_addOutPort(self, name, m_inport, offset, scale, pos, obj):
       m_data_o, m_data_type =  GetDataType(m_inport[1])
       
@@ -178,9 +190,10 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
 
   ##
-  # インポート削除の関数
-  # inport：削除するインポート
-  ##
+  # @brief インポート削除の関数
+  # @param self
+  # @param inport 削除するインポート
+  #
 
   def m_removeInComp(self, inport):
       inport._port.disconnect_all()
@@ -189,9 +202,10 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
 
   ##
-  # アウトポート削除の関数
-  # outport：削除するアウトポート
-  ##
+  # @brief アウトポート削除の関数
+  # @param self
+  # @param outport 削除するアウトポート
+  #
 
   def m_removeOutComp(self, outport):
       outport._port.disconnect_all()
@@ -200,8 +214,9 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
 
   ##
-  # 初期化処理用コールバック関数
-  ##
+  # @brief 初期化処理用コールバック関数
+  # @param self
+  #
   def onInitialize(self):
     
     OOoRTC.draw_comp = self
@@ -209,6 +224,11 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     
     return RTC.RTC_OK
 
+  ##
+  # @brief 活性化処理用コールバック関数
+  # @param self
+  # @param ec_id
+  #
   def onActivated(self, ec_id):
       m_ec = self.get_owned_contexts()
       
@@ -220,8 +240,10 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
       return RTC.RTC_OK
 
   ##
-  # 周期処理用コールバック関数
-  ##
+  # @brief 周期処理用コールバック関数
+  # @param self
+  # @param ec_id
+  #
   
   def onExecute(self, ec_id):
     
@@ -313,8 +335,10 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     return RTC.RTC_OK
 
   ##
-  # 終了処理用コールバック関数
-  ##
+  # @brief 終了処理用コールバック関数
+  # @param self
+  # @param ec_id
+  #
   
   def on_shutdown(self, ec_id):
       OOoRTC.draw_comp = None
@@ -322,19 +346,24 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
 
 ##
-# 追加するポートのクラス
-# port：データポート
-# data：データ
-# name：名前
-# offset：位置、角度のオフセット[X,Y,R]
-# scale：位置の拡大率[X,Y]
-# pos：図形の初期位置、角度[X,Y,R]
-# obj：図形のオブジェクト
-# port_a：接続するデータポート
-# m_data_Type：データ型
-##
+# @class MyPortObject
+# @brief 追加するポートのクラス
+#
 
 class MyPortObject:
+    ##
+    # @brief コンストラクタ
+    # @param self
+    # @param port データポート
+    # @param data データ
+    # @param name 名前
+    # @param offset 位置、角度のオフセット[X,Y,R]
+    # @param scale 位置の拡大率[X,Y]
+    # @param pos 図形の初期位置、角度[X,Y,R]
+    # @param obj 図形のオブジェクト
+    # @param port_a 接続するデータポート
+    # @param m_data_Type データ型
+    #
     def __init__(self, port, data, name, offset, scale, pos, obj, port_a, m_dataType):
         self._port = port
         self._data = data
@@ -353,8 +382,8 @@ class MyPortObject:
 
 
 ##
-# データのタイプ
-##
+# @brief データのタイプ
+#
 
 class m_DataType:
 
@@ -365,10 +394,10 @@ class m_DataType:
 
 
 ##
-# データポートのデータ型を返す関数
-# m_port：データポート
-# 戻り値：データオブジェクト、[データ型、データのタイプ、データ型の名前]
-##
+# @brief データポートのデータ型を返す関数
+# @param m_port データポート
+# @return データオブジェクト、[データ型、データのタイプ、データ型の名前]
+#
 
 def GetDataType(m_port):
     basic = m_DataType.basic
@@ -440,8 +469,8 @@ def GetDataType(m_port):
 
 
 ##
-# コンポーネントを活性化してDrawの操作を開始する関数
-##
+# @brief コンポーネントを活性化してDrawの操作を開始する関数
+#
 
 def Start():
     
@@ -449,8 +478,8 @@ def Start():
         OOoRTC.draw_comp.m_activate()
 
 ##
-# コンポーネントを不活性化してDrawの操作を終了する関数
-##
+# @brief コンポーネントを不活性化してDrawの操作を終了する関数
+#
 
 def Stop():
     
@@ -459,8 +488,8 @@ def Stop():
 
 
 ##
-# コンポーネントの実行周期を設定する関数
-##
+# @brief コンポーネントの実行周期を設定する関数
+#
 
 def Set_Rate():
     
@@ -491,10 +520,10 @@ def Set_Rate():
         
       
 ##
-# 図形の位置を取得
-# _port：追加したデータポート
-# 戻り値：図形の位置(X,Y)
-##
+# @brief 図形の位置を取得
+# @param port 追加したデータポート
+# @return 図形の位置(X,Y)
+#
 def ObjGetPos(_port):
   size = _port._obj.Size
 
@@ -512,10 +541,11 @@ def ObjGetPos(_port):
   return tx, ty
 
 ##
-# 図形の位置を設定
-# _port：追加したデータポート
-# _x,_y：設定する位置
-##
+# @brief 図形の位置を設定
+# @param _port 追加したデータポート
+# @param _x 設定する位置(X)
+# @param _y 設定する位置(Y)
+#
 def ObjSetPos(_port, _x, _y):
   size = _port._obj.Size
               
@@ -532,10 +562,10 @@ def ObjSetPos(_port, _x, _y):
 
 
 ##
-# 設定した図形がどのページに存在するか取得する関数
-# obj：図形オブジェクト
-# 戻り値：図形のページ番号、図形番号
-##
+# @brief 設定した図形がどのページに存在するか取得する関数
+# @param obj 図形オブジェクト
+# @return 図形のページ番号、図形番号
+#
 def JudgeRTCObjDraw(obj):
   
   try:
@@ -555,8 +585,8 @@ def JudgeRTCObjDraw(obj):
 
 
 ##
-#RTCをマネージャに登録する関数
-##
+# @brief RTCをマネージャに登録する関数
+#
 def OOoDrawControlInit(manager):
   profile = OpenRTM_aist.Properties(defaults_str=ooodrawcontrol_spec)
   manager.registerFactory(profile,
@@ -577,10 +607,10 @@ def MyModuleInit(manager):
 
 
 ##
-# オブジェクトがポートと関連付けされているかの判定の関数
-# obj：図形オブジェクト
-# 戻り値：データポートとデータポートのタイプ
-##
+# @brief オブジェクトがポートと関連付けされているかの判定の関数
+# @param obj 図形オブジェクト
+# @return データポートとデータポートのタイプ
+#
 def JudgeDrawObjRTC(obj):
   
   if OOoRTC.draw_comp:
@@ -600,13 +630,13 @@ def JudgeDrawObjRTC(obj):
 
 
 ##
-# データポートを追加する関数
-# o_port：接続するデータポート
-# dlg_control：ダイアログオブジェクト
-# obj：図形オブジェクト
-# d_type：データポートのタイプ
-# 戻り値：成功ならばTrue、失敗ならばFalse
-##
+# @brief データポートを追加する関数
+# @param o_port 接続するデータポート
+# @param dlg_control ダイアログオブジェクト
+# @param obj 図形オブジェクト
+# @param d_type データポートのタイプ
+# @return 成功ならばTrue、失敗ならばFalse
+#
 
 def CompAddPort(name, o_port, dlg_control, obj, d_type):
 
@@ -644,8 +674,8 @@ def CompAddPort(name, o_port, dlg_control, obj, d_type):
     return True
 
 ##
-# RTC起動の関数
-##
+# @brief RTC起動の関数
+#
 
 def createOOoDrawComp():
                         
@@ -675,10 +705,11 @@ def createOOoDrawComp():
 
 
 ##
-# ポートを接続する関数
-# obj1、obj2：接続するデータポート
-# c_name：コネクタ名
-##
+# @brief ポートを接続する関数
+# @param obj1 接続するデータポート
+# @param obj2 接続するデータポート
+# @param c_name コネクタ名
+#
 
 def m_addport(obj1, obj2, c_name):
 
@@ -705,11 +736,11 @@ def m_addport(obj1, obj2, c_name):
     ret = obj2.connect(conprof)
 
 ##
-# メッセージボックス表示の関数
-# title：ウインドウのタイトル
-# message：表示する文章
+# @brief メッセージボックス表示の関数
+# @param title ウインドウのタイトル
+# @param message 表示する文章
 # http://d.hatena.ne.jp/kakurasan/20100408/p1のソースコード(GPLv2)の一部
-##
+#
 
 def MyMsgBox(title, message):
     try:
@@ -720,9 +751,9 @@ def MyMsgBox(title, message):
 
 
 ##
-# OpenOfficeを操作するためのクラス
+# @brief OpenOfficeを操作するためのクラス
 # http://d.hatena.ne.jp/kakurasan/20100408/p1のソースコード(GPLv2)の一部
-##
+#
 
 class Bridge(object):
   def __init__(self):
@@ -737,8 +768,10 @@ class Bridge(object):
     msgbox.dispose()
 
 ##
-# ネーミングサービスへ接続する関数
-##
+# @brief ネーミングサービスへ接続する関数
+# @param s_name
+# @param orb
+#
 def SetNamingServer(s_name, orb):
     
     try:
@@ -749,10 +782,10 @@ def SetNamingServer(s_name, orb):
     return namingserver
 
 ##
-# ツリーで選択したアイテムがポートかどうか判定する関数
-# objectTree：ダイアログのツリー
-# _path：ポートのパスのリスト
-##
+# @brief ツリーで選択したアイテムがポートかどうか判定する関数
+# @param objectTree ダイアログのツリー
+# @param _path ポートのパスのリスト
+#
 
 def JudgePort(objectTree, _paths):
     m_list = []
@@ -795,12 +828,12 @@ def JudgePort(objectTree, _paths):
 
 
 ##
-# 各RTCのパスを取得する関数
-# rtclist：データポートのリスト
-# name：現在のパス名
-# oParent：ツリーの現在のオブジェクト
-# oTreeDataModel：ツリーオブジェクト
-##
+# @brief 各RTCのパスを取得する関数
+# @param rtclist データポートのリスト
+# @param name 現在のパス名
+# @param oParent ツリーの現在のオブジェクト
+# @param oTreeDataModel ツリーオブジェクト
+#
 def ListRecursive(context, rtclist, name, oParent, oTreeDataModel):
     
     m_blLength = 100
@@ -887,10 +920,10 @@ def rtc_get_rtclist(naming, rtclist, name, oParent, oTreeDataModel):
                        
                        
 ##
-# ポートのパスのリストを取得する関数
-# name：ネームサーバーの名前
-# 戻り値：ポートのパスのリスト
-##
+# @brief ポートのパスのリストを取得する関数
+# @param name ネームサーバーの名前
+# @return ポートのパスのリスト
+#
 def getPathList(name):
     if OOoRTC.mgr != None:
         orb = OOoRTC.mgr._orb
@@ -903,8 +936,8 @@ def getPathList(name):
     return None
 
 ##
-# ダイアログのツリーにネーミングサーバーのオブジェクトを登録する関数
-##
+# @brief ダイアログのツリーにネーミングサーバーのオブジェクトを登録する関数
+#
 
 def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
     oTree = dlg_control.getControl( m_ControlName.RTCTreeName )
@@ -959,9 +992,9 @@ def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
 
 
 ##
-# OpenOffice Drawを操作するためのクラス
+# @brief OpenOffice Drawを操作するためのクラス
 # http://d.hatena.ne.jp/kakurasan/20100408/p1のソースコード(GPLv2)の一部を改変
-##
+#
 
 class OOoDraw(Bridge):
   def __init__(self):
@@ -980,8 +1013,8 @@ class OOoDraw(Bridge):
 
 
 ##
-# 読み込んだ保存用シートからポートを作成する関数
-##
+# @brief 読み込んだ保存用シートからポートを作成する関数
+#
 
 def LoadSheet():
   
@@ -1055,8 +1088,8 @@ def LoadSheet():
 
 
 ##
-# 作成したポートの設定を保存する関数
-##
+# @brief 作成したポートの設定を保存する関数
+#
 
 def UpdateSaveSheet():
     try:
@@ -1103,8 +1136,8 @@ def UpdateSaveSheet():
     st_control.Text = text
 
 ##
-# ツリーの選択位置が変わったときに各テキストボックスの内容を変更する関数
-##
+# @brief ツリーの選択位置が変わったときに各テキストボックスの内容を変更する関数
+#
 def UpdateTree(dlg_control, m_port):
     
     info_control = dlg_control.getControl( m_ControlName.TextFName )
@@ -1126,16 +1159,17 @@ def UpdateTree(dlg_control, m_port):
     ys_control.setText(str(m_port._sy))
 
 ##
-# ポートを削除したときに各テキストボックスを変更する関数
-##
+# @brief ポートを削除したときに各テキストボックスを変更する関数
+#
 
 def ClearInfo(dlg_control):
     info_control = dlg_control.getControl( m_ControlName.TextFName )
     info_control.setText(OOoRTC.SetCoding('未作成','utf-8'))
 
 ##
-# ポート作成ボタンのコールバック
-##
+# @class CreatePortListener
+# @brief ポート作成ボタンのコールバック
+#
 
 class CreatePortListener( unohelper.Base, XActionListener):
     def __init__(self, dlg_control, _paths):
@@ -1210,8 +1244,9 @@ class CreatePortListener( unohelper.Base, XActionListener):
         
 
 ##
-# ツリー作成ボタンのコールバック
-##
+# @class SetRTCTreeListener
+# @brief ツリー作成ボタンのコールバック
+#
 
 class SetRTCTreeListener( unohelper.Base, XActionListener ):
     def __init__(self, oTreeModel, smgr, ctx, dlg_control):
@@ -1226,8 +1261,9 @@ class SetRTCTreeListener( unohelper.Base, XActionListener ):
 
 
 ##
-# ツリーのマウスでの操作に対するコールバック
-##
+# @class MySelectListener
+# @brief ツリーのマウスでの操作に対するコールバック
+#
 
 class MySelectListener( unohelper.Base, XSelectionChangeListener):
     def __init__(self, dlg_control, _paths):
@@ -1259,8 +1295,9 @@ class MySelectListener( unohelper.Base, XSelectionChangeListener):
 
 
 ##
-# ポート削除ボタンのコールバック
-##
+# @class DeleteListener
+# @brief ポート削除ボタンのコールバック
+#
 class DeleteListener( unohelper.Base, XActionListener ):
     def __init__(self, dlg_control, _paths):
         self._paths = _paths
@@ -1295,8 +1332,9 @@ class DeleteListener( unohelper.Base, XActionListener ):
         MyMsgBox(OOoRTC.SetCoding('エラー','utf-8'),OOoRTC.SetCoding('削除済みです','utf-8'))
 
 ##
-# 位置の初期化ボタンのコールバック
-##
+# @class SetPosListener
+# @brief 位置の初期化ボタンのコールバック
+#
 class SetPosListener( unohelper.Base, XActionListener ):
     def __init__(self, dlg_control, _paths):
         
@@ -1327,8 +1365,9 @@ class SetPosListener( unohelper.Base, XActionListener ):
 
 
 ##
-# 位置の全初期化ボタンのコールバック
-##
+# @class SetAllPosListener
+# @brief 位置の全初期化ボタンのコールバック
+#
 class SetAllPosListener( unohelper.Base, XActionListener ):
     def __init__(self, dlg_control):
         self.dlg_control = dlg_control
@@ -1344,8 +1383,8 @@ class SetAllPosListener( unohelper.Base, XActionListener ):
 
 
 ##
-# ダイアログ作成の関数
-##
+# @brief ダイアログ作成の関数
+#
 def SetDialog():
     try:
       draw = OOoDraw()
