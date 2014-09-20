@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+
+
 ##
+#   @file OOoDrawRTC.py
 #
-# @file OOoDrawRTC.py
 
 import optparse
 import sys,os,platform
@@ -61,6 +63,7 @@ imp_id = "OOoDrawControl"# + str(comp_num)
 
 
 ##
+# @class m_ControlName
 # @brief ウィジェット名
 #
 class m_ControlName:
@@ -216,7 +219,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   ##
   # @brief 初期化処理用コールバック関数
   # @param self
-  #
+  # @return 
   def onInitialize(self):
     
     OOoRTC.draw_comp = self
@@ -228,7 +231,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @brief 活性化処理用コールバック関数
   # @param self
   # @param ec_id
-  #
+  # @return 
   def onActivated(self, ec_id):
       m_ec = self.get_owned_contexts()
       
@@ -243,7 +246,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @brief 周期処理用コールバック関数
   # @param self
   # @param ec_id
-  #
+  # @return 
   
   def onExecute(self, ec_id):
     
@@ -338,7 +341,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @brief 終了処理用コールバック関数
   # @param self
   # @param ec_id
-  #
+  # @return 
   
   def on_shutdown(self, ec_id):
       OOoRTC.draw_comp = None
@@ -382,6 +385,7 @@ class MyPortObject:
 
 
 ##
+# @class m_DataType
 # @brief データのタイプ
 #
 
@@ -586,6 +590,7 @@ def JudgeRTCObjDraw(obj):
 
 ##
 # @brief RTCをマネージャに登録する関数
+# @param manager
 #
 def OOoDrawControlInit(manager):
   profile = OpenRTM_aist.Properties(defaults_str=ooodrawcontrol_spec)
@@ -593,7 +598,10 @@ def OOoDrawControlInit(manager):
                           OOoDrawControl,
                           OpenRTM_aist.Delete)
 
-
+##
+# @brief
+# @param manager
+#
 def MyModuleInit(manager):
   manager._factory.unregisterObject(imp_id)
   OOoDrawControlInit(manager)
@@ -771,7 +779,7 @@ class Bridge(object):
 # @brief ネーミングサービスへ接続する関数
 # @param s_name
 # @param orb
-#
+# @return 
 def SetNamingServer(s_name, orb):
     
     try:
@@ -785,7 +793,7 @@ def SetNamingServer(s_name, orb):
 # @brief ツリーで選択したアイテムがポートかどうか判定する関数
 # @param objectTree ダイアログのツリー
 # @param _path ポートのパスのリスト
-#
+# @return 
 
 def JudgePort(objectTree, _paths):
     m_list = []
@@ -905,6 +913,15 @@ def ListRecursive(context, rtclist, name, oParent, oTreeDataModel):
             bl = i.next_n(m_blLength)
 
 
+
+
+##
+# @brief
+# @param naming
+# @param rtclist
+# @param name
+# @param oParent
+# @param oTreeDataModel
 def rtc_get_rtclist(naming, rtclist, name, oParent, oTreeDataModel):
     name_cxt = naming.getRootContext()
     ListRecursive(name_cxt,rtclist,name, oParent, oTreeDataModel)
@@ -937,7 +954,10 @@ def getPathList(name):
 
 ##
 # @brief ダイアログのツリーにネーミングサーバーのオブジェクトを登録する関数
-#
+# @param oTreeModel
+# @param smgr
+# @param ctx
+# @param dlg_control
 
 def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
     oTree = dlg_control.getControl( m_ControlName.RTCTreeName )
@@ -1137,6 +1157,8 @@ def UpdateSaveSheet():
 
 ##
 # @brief ツリーの選択位置が変わったときに各テキストボックスの内容を変更する関数
+# @param dlg_control
+# @param m_port
 #
 def UpdateTree(dlg_control, m_port):
     
@@ -1160,7 +1182,7 @@ def UpdateTree(dlg_control, m_port):
 
 ##
 # @brief ポートを削除したときに各テキストボックスを変更する関数
-#
+# @param dlg_control
 
 def ClearInfo(dlg_control):
     info_control = dlg_control.getControl( m_ControlName.TextFName )
@@ -1172,11 +1194,20 @@ def ClearInfo(dlg_control):
 #
 
 class CreatePortListener( unohelper.Base, XActionListener):
+    ##
+    # @brief コンストラクタ
+    # @param self
+    # @param dlg_control
+    # @param _paths
     def __init__(self, dlg_control, _paths):
         
         self._paths = _paths
         self.dlg_control = dlg_control
 
+    ##
+    # @brief 
+    # @param self
+    # @param actionEvent
     def actionPerformed(self, actionEvent):
 
         
@@ -1249,6 +1280,13 @@ class CreatePortListener( unohelper.Base, XActionListener):
 #
 
 class SetRTCTreeListener( unohelper.Base, XActionListener ):
+    ##
+    # @brief コンストラクタ
+    # @param self
+    # @param oTreeModel
+    # @param smgr
+    # @param ctx
+    # @param dlg_control
     def __init__(self, oTreeModel, smgr, ctx, dlg_control):
         
         self.oTreeModel = oTreeModel
@@ -1256,6 +1294,10 @@ class SetRTCTreeListener( unohelper.Base, XActionListener ):
         self.ctx = ctx
         self.dlg_control = dlg_control
 
+    ##
+    # @brief 
+    # @param self
+    # @param actionEvent
     def actionPerformed(self, actionEvent):
         SetRTCTree(self.oTreeModel, self.smgr, self.ctx, self.dlg_control)
 
@@ -1266,9 +1308,19 @@ class SetRTCTreeListener( unohelper.Base, XActionListener ):
 #
 
 class MySelectListener( unohelper.Base, XSelectionChangeListener):
+    ##
+    # @brief コンストラクタ
+    # @param self
+    # @param dlg_control
+    # @param _paths
     def __init__(self, dlg_control, _paths):
         self.dlg_control = dlg_control
         self._paths = _paths
+
+    ##
+    # @brief 
+    # @param self
+    # @param ev
     def selectionChanged(self, ev):
         try:
             draw = OOoDraw()
@@ -1299,10 +1351,19 @@ class MySelectListener( unohelper.Base, XSelectionChangeListener):
 # @brief ポート削除ボタンのコールバック
 #
 class DeleteListener( unohelper.Base, XActionListener ):
+    ##
+    # @brief コンストラクタ
+    # @param self
+    # @param dlg_control
+    # @param _paths
     def __init__(self, dlg_control, _paths):
         self._paths = _paths
         self.dlg_control = dlg_control
 
+    ##
+    # @brief 
+    # @param self
+    # @param actionEvent
     def actionPerformed(self, actionEvent):
         try:
             draw = OOoDraw()
@@ -1336,11 +1397,20 @@ class DeleteListener( unohelper.Base, XActionListener ):
 # @brief 位置の初期化ボタンのコールバック
 #
 class SetPosListener( unohelper.Base, XActionListener ):
+    ##
+    # @brief コンストラクタ
+    # @param self
+    # @param dlg_control
+    # @param _paths
     def __init__(self, dlg_control, _paths):
         
         self._paths = _paths
         self.dlg_control = dlg_control
 
+    ##
+    # @brief 
+    # @param self
+    # @param actionEvent
     def actionPerformed(self, actionEvent):
         
         objectTree = self.dlg_control.getControl(m_ControlName.RTCTreeName)
@@ -1369,9 +1439,17 @@ class SetPosListener( unohelper.Base, XActionListener ):
 # @brief 位置の全初期化ボタンのコールバック
 #
 class SetAllPosListener( unohelper.Base, XActionListener ):
+    ##
+    # @brief コンストラクタ
+    # @param self
+    # @param dlg_control
     def __init__(self, dlg_control):
         self.dlg_control = dlg_control
 
+    ##
+    # @brief 
+    # @param self
+    # @param actionEvent
     def actionPerformed(self, actionEvent):
         
         for n,i in OOoRTC.draw_comp._InPorts.items():
