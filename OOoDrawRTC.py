@@ -4,7 +4,7 @@
 
 ##
 #   @file OOoDrawRTC.py
-#
+#   @brief OOoDrawControl Component
 
 import optparse
 import sys,os,platform
@@ -108,6 +108,11 @@ ooodrawcontrol_spec = ["implementation_id", imp_id,
 #
 
 class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
+    ##
+    # @brief コンストラクタ
+    # @param self 
+    # @param manager マネージャーオブジェクト
+    #
   def __init__(self, manager):
     OpenRTM_aist.DataFlowComponentBase.__init__(self, manager)
     
@@ -127,7 +132,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief 実行周期を設定する関数
-  # @param self
+  # @param self 
   # @param rate：実行周期
   #
   def m_setRate(self, rate):
@@ -136,7 +141,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief 活性化するための関数
-  # @param self
+  # @param self 
   #
   def m_activate(self):
       m_ec = self.get_owned_contexts()
@@ -144,7 +149,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief 不活性化するための関数
-  # @param self
+  # @param self 
   #
   def m_deactivate(self):
       m_ec = self.get_owned_contexts()
@@ -154,7 +159,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief インポート追加の関数
-  # @param self
+  # @param self 
   # @param name インポートの名前
   # @param m_outport 接続するアウトポート
   # @param offset 位置、角度のオフセット[X,Y,R]
@@ -174,7 +179,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief アウトポート追加の関数
-  # @param self
+  # @param self 
   # @param name インポートの名前
   # @param m_outport 接続するアウトポート
   # @param offset 位置、角度のオフセット[X,Y,R]
@@ -194,7 +199,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief インポート削除の関数
-  # @param self
+  # @param self 
   # @param inport 削除するインポート
   #
 
@@ -206,7 +211,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief アウトポート削除の関数
-  # @param self
+  # @param self 
   # @param outport 削除するアウトポート
   #
 
@@ -218,8 +223,8 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief 初期化処理用コールバック関数
-  # @param self
-  # @return 
+  # @param self 
+  # @return RTC::ReturnCode_t
   def onInitialize(self):
     
     OOoRTC.draw_comp = self
@@ -229,9 +234,9 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief 活性化処理用コールバック関数
-  # @param self
-  # @param ec_id
-  # @return 
+  # @param self 
+  # @param ec_id target ExecutionContext Id
+  # @return RTC::ReturnCode_t
   def onActivated(self, ec_id):
       m_ec = self.get_owned_contexts()
       
@@ -244,9 +249,9 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief 周期処理用コールバック関数
-  # @param self
-  # @param ec_id
-  # @return 
+  # @param self 
+  # @param ec_id target ExecutionContext Id
+  # @return RTC::ReturnCode_t
   
   def onExecute(self, ec_id):
     
@@ -306,8 +311,11 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
     
     
     for n,ip in self._InPorts.items():
-        if ip._port.isNew():
-          dt = ip._port.read()
+        dt = None
+        while ip._port.isNew():
+            dt = ip._port.read()
+            
+        if dt != None:
           if ip._dataType[1] == basic:
             if len(dt.data) < 2:
               pass
@@ -339,9 +347,9 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
   ##
   # @brief 終了処理用コールバック関数
-  # @param self
-  # @param ec_id
-  # @return 
+  # @param self 
+  # @param ec_id target ExecutionContext Id
+  # @return RTC::ReturnCode_t
   
   def on_shutdown(self, ec_id):
       OOoRTC.draw_comp = None
@@ -356,7 +364,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 class MyPortObject:
     ##
     # @brief コンストラクタ
-    # @param self
+    # @param self 
     # @param port データポート
     # @param data データ
     # @param name 名前
@@ -590,7 +598,7 @@ def JudgeRTCObjDraw(obj):
 
 ##
 # @brief RTCをマネージャに登録する関数
-# @param manager
+# @param manager マネージャーオブジェクト
 #
 def OOoDrawControlInit(manager):
   profile = OpenRTM_aist.Properties(defaults_str=ooodrawcontrol_spec)
@@ -599,8 +607,8 @@ def OOoDrawControlInit(manager):
                           OpenRTM_aist.Delete)
 
 ##
-# @brief
-# @param manager
+# @brief 
+# @param manager マネージャーオブジェクト
 #
 def MyModuleInit(manager):
   manager._factory.unregisterObject(imp_id)
@@ -777,9 +785,9 @@ class Bridge(object):
 
 ##
 # @brief ネーミングサービスへ接続する関数
-# @param s_name
-# @param orb
-# @return 
+# @param s_name ネームサーバーの名前
+# @param orb ORBオブジェクト
+# @return ネーミングコンテキスト
 def SetNamingServer(s_name, orb):
     
     try:
@@ -793,7 +801,7 @@ def SetNamingServer(s_name, orb):
 # @brief ツリーで選択したアイテムがポートかどうか判定する関数
 # @param objectTree ダイアログのツリー
 # @param _path ポートのパスのリスト
-# @return 
+# @return [データポートまでのPath、選択中のツリーノード]
 
 def JudgePort(objectTree, _paths):
     m_list = []
@@ -837,6 +845,7 @@ def JudgePort(objectTree, _paths):
 
 ##
 # @brief 各RTCのパスを取得する関数
+# @param context ネーミングコンテキスト
 # @param rtclist データポートのリスト
 # @param name 現在のパス名
 # @param oParent ツリーの現在のオブジェクト
@@ -917,11 +926,11 @@ def ListRecursive(context, rtclist, name, oParent, oTreeDataModel):
 
 ##
 # @brief
-# @param naming
-# @param rtclist
-# @param name
-# @param oParent
-# @param oTreeDataModel
+# @param naming ネーミングコンテキスト
+# @param rtclist データポートのリスト
+# @param name 現在のパス名
+# @param oParent ツリーの現在のオブジェクト
+# @param oTreeDataModel ツリーオブジェクト
 def rtc_get_rtclist(naming, rtclist, name, oParent, oTreeDataModel):
     name_cxt = naming.getRootContext()
     ListRecursive(name_cxt,rtclist,name, oParent, oTreeDataModel)
@@ -952,12 +961,14 @@ def getPathList(name):
             return _paths
     return None
 
+
+
 ##
 # @brief ダイアログのツリーにネーミングサーバーのオブジェクトを登録する関数
-# @param oTreeModel
-# @param smgr
-# @param ctx
-# @param dlg_control
+# @param oTreeModel ツリーオブジェクト
+# @param smgr UNOコンポーネントコンテキスト
+# @param ctx UNOサービスマネージャー
+# @param dlg_control ダイアログオブジェクト
 
 def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
     oTree = dlg_control.getControl( m_ControlName.RTCTreeName )
@@ -1157,8 +1168,8 @@ def UpdateSaveSheet():
 
 ##
 # @brief ツリーの選択位置が変わったときに各テキストボックスの内容を変更する関数
-# @param dlg_control
-# @param m_port
+# @param dlg_control ダイアログオブジェクト
+# @param m_port データポートオブジェクト
 #
 def UpdateTree(dlg_control, m_port):
     
@@ -1182,7 +1193,7 @@ def UpdateTree(dlg_control, m_port):
 
 ##
 # @brief ポートを削除したときに各テキストボックスを変更する関数
-# @param dlg_control
+# @param dlg_control ダイアログオブジェクト
 
 def ClearInfo(dlg_control):
     info_control = dlg_control.getControl( m_ControlName.TextFName )
@@ -1196,9 +1207,9 @@ def ClearInfo(dlg_control):
 class CreatePortListener( unohelper.Base, XActionListener):
     ##
     # @brief コンストラクタ
-    # @param self
-    # @param dlg_control
-    # @param _paths
+    # @param self 
+    # @param dlg_control ダイアログオブジェクト
+    # @param _paths データポートのパス
     def __init__(self, dlg_control, _paths):
         
         self._paths = _paths
@@ -1206,8 +1217,8 @@ class CreatePortListener( unohelper.Base, XActionListener):
 
     ##
     # @brief 
-    # @param self
-    # @param actionEvent
+    # @param self 
+    # @param actionEvent 
     def actionPerformed(self, actionEvent):
 
         
@@ -1282,11 +1293,11 @@ class CreatePortListener( unohelper.Base, XActionListener):
 class SetRTCTreeListener( unohelper.Base, XActionListener ):
     ##
     # @brief コンストラクタ
-    # @param self
-    # @param oTreeModel
-    # @param smgr
-    # @param ctx
-    # @param dlg_control
+    # @param self 
+    # @param oTreeModel ツリーオブジェクト
+    # @param smgr UNOコンポーネントコンテキスト
+    # @param ctx UNOサービスマネージャー
+    # @param dlg_control ダイアログオブジェクト
     def __init__(self, oTreeModel, smgr, ctx, dlg_control):
         
         self.oTreeModel = oTreeModel
@@ -1296,8 +1307,8 @@ class SetRTCTreeListener( unohelper.Base, XActionListener ):
 
     ##
     # @brief 
-    # @param self
-    # @param actionEvent
+    # @param self 
+    # @param actionEvent 
     def actionPerformed(self, actionEvent):
         SetRTCTree(self.oTreeModel, self.smgr, self.ctx, self.dlg_control)
 
@@ -1310,17 +1321,17 @@ class SetRTCTreeListener( unohelper.Base, XActionListener ):
 class MySelectListener( unohelper.Base, XSelectionChangeListener):
     ##
     # @brief コンストラクタ
-    # @param self
-    # @param dlg_control
-    # @param _paths
+    # @param self 
+    # @param dlg_control ダイアログオブジェクト
+    # @param _paths データポートのパス
     def __init__(self, dlg_control, _paths):
         self.dlg_control = dlg_control
         self._paths = _paths
 
     ##
     # @brief 
-    # @param self
-    # @param ev
+    # @param self 
+    # @param ev 
     def selectionChanged(self, ev):
         try:
             draw = OOoDraw()
@@ -1353,17 +1364,17 @@ class MySelectListener( unohelper.Base, XSelectionChangeListener):
 class DeleteListener( unohelper.Base, XActionListener ):
     ##
     # @brief コンストラクタ
-    # @param self
-    # @param dlg_control
-    # @param _paths
+    # @param self 
+    # @param dlg_control ダイアログオブジェクト
+    # @param _paths データポートのパス
     def __init__(self, dlg_control, _paths):
         self._paths = _paths
         self.dlg_control = dlg_control
 
     ##
     # @brief 
-    # @param self
-    # @param actionEvent
+    # @param self 
+    # @param actionEvent 
     def actionPerformed(self, actionEvent):
         try:
             draw = OOoDraw()
@@ -1399,9 +1410,9 @@ class DeleteListener( unohelper.Base, XActionListener ):
 class SetPosListener( unohelper.Base, XActionListener ):
     ##
     # @brief コンストラクタ
-    # @param self
-    # @param dlg_control
-    # @param _paths
+    # @param self 
+    # @param dlg_control ダイアログオブジェクト
+    # @param _paths データポートのパス
     def __init__(self, dlg_control, _paths):
         
         self._paths = _paths
@@ -1409,8 +1420,8 @@ class SetPosListener( unohelper.Base, XActionListener ):
 
     ##
     # @brief 
-    # @param self
-    # @param actionEvent
+    # @param self 
+    # @param actionEvent 
     def actionPerformed(self, actionEvent):
         
         objectTree = self.dlg_control.getControl(m_ControlName.RTCTreeName)
@@ -1441,15 +1452,15 @@ class SetPosListener( unohelper.Base, XActionListener ):
 class SetAllPosListener( unohelper.Base, XActionListener ):
     ##
     # @brief コンストラクタ
-    # @param self
-    # @param dlg_control
+    # @param self 
+    # @param dlg_control ダイアログオブジェクト
     def __init__(self, dlg_control):
         self.dlg_control = dlg_control
 
     ##
     # @brief 
-    # @param self
-    # @param actionEvent
+    # @param self 
+    # @param actionEvent 
     def actionPerformed(self, actionEvent):
         
         for n,i in OOoRTC.draw_comp._InPorts.items():
