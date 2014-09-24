@@ -779,9 +779,14 @@ class Bridge(object):
     self._window = self._frame.ContainerWindow
     self._toolkit = self._window.Toolkit
   def run_infodialog(self, title='', message=''):
-    msgbox = self._toolkit.createMessageBox(self._window,uno.createUnoStruct('com.sun.star.awt.Rectangle'),'infobox',1,title,message)
-    msgbox.execute()
-    msgbox.dispose()
+    try:
+        msgbox = self._toolkit.createMessageBox(self._window,uno.createUnoStruct('com.sun.star.awt.Rectangle'),'infobox',1,title,message)
+        msgbox.execute()
+        msgbox.dispose()
+    except:
+        msgbox = self._toolkit.createMessageBox(self._window,'infobox',1,title,message)
+        msgbox.execute()
+        msgbox.dispose()
 
 ##
 # @brief ネーミングサービスへ接続する関数
