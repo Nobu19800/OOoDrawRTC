@@ -196,6 +196,20 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
         m_addport(m_outport._objref, m_inport[1], name)
         self._OutPorts[name] = MyPortObject(m_outport, m_data_o, name, offset, scale, pos, obj, m_inport, m_data_type)
 
+  ##
+  # @brief データポート全削除の関数
+  # @param self 
+  #
+  def m_removeAllPort(self):
+      for n,op in self._OutPorts.items():
+          op._port.disconnect_all()
+          self.removePort(op._port)
+      self._OutPorts = {}
+
+      for n,ip in self._InPorts.items():
+          ip._port.disconnect_all()
+          self.removePort(ip._port)
+      self._InPorts = {}
 
   ##
   # @brief インポート削除の関数
@@ -203,7 +217,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @param inport 削除するインポート
   #
 
-  def m_removeInComp(self, inport):
+  def m_removeInPort(self, inport):
       inport._port.disconnect_all()
       self.removePort(inport._port)
       del self._InPorts[inport._name]
@@ -215,7 +229,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @param outport 削除するアウトポート
   #
 
-  def m_removeOutComp(self, outport):
+  def m_removeOutPort(self, outport):
       outport._port.disconnect_all()
       self.removePort(outport._port)
       del self._OutPorts[outport._name]
@@ -263,14 +277,14 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
       if JudgeRTCObjDraw(op._obj):
         pass
       else:
-        self.m_removeInComp(op)
+        self.m_removeInPort(op)
         UpdateSaveSheet()
 
     for n,ip in self._InPorts.items():
       if JudgeRTCObjDraw(ip._obj):
         pass
       else:
-        self.m_removeInComp(ip)
+        self.m_removeInPort(ip)
         UpdateSaveSheet()
 
 
@@ -284,7 +298,8 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
         rot = float(op._obj.RotateAngle + op._or)/100.*3.14159/180.
         
         if op._dataType[1] == basic:
-            op._data.data = [px, py, rot]
+            op._data.data = [op._dataType[0](px), op._dataType[0](py), op._dataType[0](rot)]
+                
             
             
             
@@ -435,9 +450,6 @@ def GetDataType(m_port):
     elif data_type == 'TimedFloatSeq':
         dt = RTC.TimedFloatSeq(RTC.Time(0,0),[])
         return dt, [float, basic]
-    elif data_type == 'TimedIntSeq':
-        dt = RTC.TimedIntSeq(RTC.Time(0,0),[])
-        return dt, [int, basic]
     elif data_type == 'TimedShortSeq':
         dt = RTC.TimedShortSeq(RTC.Time(0,0),[])
         return dt, [int, basic]
@@ -450,9 +462,6 @@ def GetDataType(m_port):
     elif data_type == 'TimedUFloatSeq':
         dt = RTC.TimedUFloatSeq(RTC.Time(0,0),[])
         return dt, [float, basic]
-    elif data_type == 'TimedUIntSeq':
-        dt = RTC.TimedUIntSeq(RTC.Time(0,0),[])
-        return dt, [int, basic]
     elif data_type == 'TimedUShortSeq':
         dt = RTC.TimedUShortSeq(RTC.Time(0,0),[])
         return dt, [int, basic]
@@ -744,7 +753,7 @@ def m_addport(obj1, obj2, c_name):
     obj2.disconnect_all()
 
     # connect ports
-    conprof = RTC.ConnectorProfile("connector0", "", [obj1,obj2], [])
+    conprof = RTC.ConnectorProfile(c_name, "", [obj1,obj2], [])
     OpenRTM_aist.CORBA_SeqUtil.push_back(conprof.properties,
                                     OpenRTM_aist.NVUtil.newNV("dataport.interface_type",
                                                          "corba_cdr"))
@@ -1064,10 +1073,10 @@ def LoadSheet():
   
     
     if OOoRTC.draw_comp:
-      try:
-        draw = OOoDraw()
-      except NotOOoDrawException:
-          return
+      
+      draw = OOoRTC.draw_comp.draw
+      
+      OOoRTC.draw_comp.m_removeAllPort()
       oDrawPages = draw.drawpages
       oDrawPage = oDrawPages.getByIndex(0)
       
@@ -1402,9 +1411,9 @@ class DeleteListener( unohelper.Base, XActionListener ):
                 jport, d_type = JudgeDrawObjRTC(obj)
                 if jport:
                     if d_type == "DataInPort":
-                        OOoRTC.draw_comp.m_removeInComp(jport)
+                        OOoRTC.draw_comp.m_removeInPort(jport)
                     else:
-                        OOoRTC.draw_comp.m_removeOutComp(jport)
+                        OOoRTC.draw_comp.m_removeOutPort(jport)
                     ClearInfo(self.dlg_control)
                     MyMsgBox('',OOoRTC.SetCoding('削除しました','utf-8'))
 
@@ -1512,7 +1521,9 @@ def SetDialog():
 
 
 
-    oTree = dlg_control.getControl(m_ControlName.RTCTreeName)    
+    oTree = dlg_control.getControl(m_ControlName.RTCTreeName)
+
+    LoadSheet()
     
 
     oTreeModel = oTree.getModel()
