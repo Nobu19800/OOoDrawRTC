@@ -24,9 +24,7 @@ elif os.name == 'nt':
     sys.path += ['.\\OOoRTC', 'C:\\Python2' + str(sv[1]) + '\\lib\\site-packages', 'C:\\Python2' + str(sv[1]) + '\\Lib\\site-packages\\OpenRTM_aist\\RTM_IDL', 'C:\\Python2' + str(sv[1]) + '\\lib\\site-packages\\rtctree\\rtmidl']
 
 
-import time
-import random
-import commands
+
 import RTC
 import OpenRTM_aist
 
@@ -51,6 +49,7 @@ from com.sun.star.awt import Point
 from com.sun.star.awt import Size
 
 import OOoRTC
+import DrawDataPort
 
 
 
@@ -63,10 +62,10 @@ imp_id = "OOoDrawControl"# + str(comp_num)
 
 
 ##
-# @class m_ControlName
+# @class ControlName
 # @brief ウィジェット名
 #
-class m_ControlName:
+class ControlName:
     XoffsetBName = "Xoffset"
     YoffsetBName = "Yoffset"
     RoffsetBName = "Roffset"
@@ -116,8 +115,8 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   def __init__(self, manager):
     OpenRTM_aist.DataFlowComponentBase.__init__(self, manager)
     
-    self._InPorts = {}
-    self._OutPorts = {}
+    self.InPorts = {}
+    self.OutPorts = {}
 
     self.sleepTime = 0
 
@@ -135,7 +134,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @param self 
   # @param rate：実行周期
   #
-  def m_setRate(self, rate):
+  def mSetRate(self, rate):
       m_ec = self.get_owned_contexts()
       m_ec[0].set_rate(rate)
 
@@ -143,7 +142,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @brief 活性化するための関数
   # @param self 
   #
-  def m_activate(self):
+  def mActivate(self):
       m_ec = self.get_owned_contexts()
       m_ec[0].activate_component(self._objref)
 
@@ -151,7 +150,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @brief 不活性化するための関数
   # @param self 
   #
-  def m_deactivate(self):
+  def mDeactivate(self):
       m_ec = self.get_owned_contexts()
       m_ec[0].deactivate_component(self._objref)
 
@@ -167,14 +166,14 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @param pos 図形の初期位置、角度[X,Y,R]
   # @param obj 図形のオブジェクト
   #
-  def m_addInPort(self, name, m_outport, offset, scale, pos, obj):
-      m_data_i, m_data_type =  GetDataType(m_outport[1])
+  def mAddInPort(self, name, m_outport, offset, scale, pos, obj):
+      m_data_i, m_data_type =  DrawDataPort.GetDataType(m_outport[1])
       
       if m_data_i:
         m_inport = OpenRTM_aist.InPort(name, m_data_i)
         self.addInPort(name, m_inport)
-        m_addport(m_inport._objref, m_outport[1], name)
-        self._InPorts[name] = MyPortObject(m_inport, m_data_i, name, offset, scale, pos, obj, m_outport, m_data_type)
+        OOoRTC.ConnectPort(m_inport._objref, m_outport[1], name)
+        self.InPorts[name] = DrawDataPort.DrawPortObject(m_inport, m_data_i, name, offset, scale, pos, obj, m_outport, m_data_type)
 
 
   ##
@@ -187,29 +186,29 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @param pos 図形の初期位置、角度[X,Y,R]
   # @param obj 図形のオブジェクト
   #
-  def m_addOutPort(self, name, m_inport, offset, scale, pos, obj):
-      m_data_o, m_data_type =  GetDataType(m_inport[1])
+  def mAddOutPort(self, name, m_inport, offset, scale, pos, obj):
+      m_data_o, m_data_type =  DrawDataPort.GetDataType(m_inport[1])
       
       if m_data_o:
         m_outport = OpenRTM_aist.OutPort(name, m_data_o)
         self.addOutPort(name, m_outport)
-        m_addport(m_outport._objref, m_inport[1], name)
-        self._OutPorts[name] = MyPortObject(m_outport, m_data_o, name, offset, scale, pos, obj, m_inport, m_data_type)
+        OOoRTC.ConnectPort(m_outport._objref, m_inport[1], name)
+        self.OutPorts[name] = DrawDataPort.DrawPortObject(m_outport, m_data_o, name, offset, scale, pos, obj, m_inport, m_data_type)
 
   ##
   # @brief データポート全削除の関数
   # @param self 
   #
-  def m_removeAllPort(self):
-      for n,op in self._OutPorts.items():
+  def mRemoveAllPort(self):
+      for n,op in self.OutPorts.items():
           op._port.disconnect_all()
           self.removePort(op._port)
-      self._OutPorts = {}
+      self.OutPorts = {}
 
-      for n,ip in self._InPorts.items():
+      for n,ip in self.InPorts.items():
           ip._port.disconnect_all()
           self.removePort(ip._port)
-      self._InPorts = {}
+      self.InPorts = {}
 
   ##
   # @brief インポート削除の関数
@@ -217,10 +216,10 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @param inport 削除するインポート
   #
 
-  def m_removeInPort(self, inport):
+  def mRemoveInPort(self, inport):
       inport._port.disconnect_all()
       self.removePort(inport._port)
-      del self._InPorts[inport._name]
+      del self.InPorts[inport._name]
 
 
   ##
@@ -229,10 +228,10 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @param outport 削除するアウトポート
   #
 
-  def m_removeOutPort(self, outport):
+  def mRemoveOutPort(self, outport):
       outport._port.disconnect_all()
       self.removePort(outport._port)
-      del self._OutPorts[outport._name]
+      del self.OutPorts[outport._name]
 
 
   ##
@@ -269,22 +268,22 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   
   def onExecute(self, ec_id):
     
-    basic = m_DataType.basic
-    extended = m_DataType.extended
+    basic = DrawDataPort.DataType.basic
+    extended = DrawDataPort.DataType.extended
 
 
-    for n,op in self._OutPorts.items():
+    for n,op in self.OutPorts.items():
       if JudgeRTCObjDraw(op._obj):
         pass
       else:
-        self.m_removeInPort(op)
+        self.mRemoveOutPort(op)
         UpdateSaveSheet()
 
-    for n,ip in self._InPorts.items():
+    for n,ip in self.InPorts.items():
       if JudgeRTCObjDraw(ip._obj):
         pass
       else:
-        self.m_removeInPort(ip)
+        self.mRemoveInPort(ip)
         UpdateSaveSheet()
 
 
@@ -293,7 +292,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
 
 
-    for n,op in self._OutPorts.items():
+    for n,op in self.OutPorts.items():
         px, py = ObjGetPos(op)
         rot = float(op._obj.RotateAngle + op._or)/100.*3.14159/180.
         
@@ -325,7 +324,7 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
 
     
     
-    for n,ip in self._InPorts.items():
+    for n,ip in self.InPorts.items():
         dt = None
         while ip._port.isNew():
             dt = ip._port.read()
@@ -371,122 +370,6 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
       return RTC.RTC_OK
 
 
-##
-# @class MyPortObject
-# @brief 追加するポートのクラス
-#
-
-class MyPortObject:
-    ##
-    # @brief コンストラクタ
-    # @param self 
-    # @param port データポート
-    # @param data データ
-    # @param name 名前
-    # @param offset 位置、角度のオフセット[X,Y,R]
-    # @param scale 位置の拡大率[X,Y]
-    # @param pos 図形の初期位置、角度[X,Y,R]
-    # @param obj 図形のオブジェクト
-    # @param port_a 接続するデータポート
-    # @param m_data_Type データ型
-    #
-    def __init__(self, port, data, name, offset, scale, pos, obj, port_a, m_dataType):
-        self._port = port
-        self._data = data
-        self._name = name
-        self._ox = offset[0]
-        self._oy = offset[1]
-        self._or = offset[2]
-        self._sx = scale[0]
-        self._sy = scale[1]
-        self._x = pos[0]
-        self._y = pos[1]
-        self._r = pos[1]
-        self._obj = obj
-        self._port_a = port_a
-        self._dataType = m_dataType
-
-
-##
-# @class m_DataType
-# @brief データのタイプ
-#
-
-class m_DataType:
-
-    basic = 0
-    extended = 1
-    def __init__(self):
-        pass
-
-
-##
-# @brief データポートのデータ型を返す関数
-# @param m_port データポート
-# @return データオブジェクト、[データ型、データのタイプ、データ型の名前]
-#
-
-def GetDataType(m_port):
-    basic = m_DataType.basic
-    extended = m_DataType.extended
-    
-    profile = m_port.get_port_profile()
-    props = nvlist_to_dict(profile.properties)
-    data_type =  props['dataport.data_type']
-    if data_type.startswith('IDL:'):
-        data_type = data_type[4:]
-    colon = data_type.rfind(':')
-    if colon != -1:
-        data_type = data_type[:colon]
-
-    data_type = data_type.replace('RTC/','')
-    
-    if data_type == 'TimedDoubleSeq':
-        dt = RTC.TimedDoubleSeq(RTC.Time(0,0),[])
-        return dt, [float, basic]
-    elif data_type == 'TimedLongSeq':
-        dt = RTC.TimedLongSeq(RTC.Time(0,0),[])
-        return dt, [long, basic]
-    elif data_type == 'TimedFloatSeq':
-        dt = RTC.TimedFloatSeq(RTC.Time(0,0),[])
-        return dt, [float, basic]
-    elif data_type == 'TimedShortSeq':
-        dt = RTC.TimedShortSeq(RTC.Time(0,0),[])
-        return dt, [int, basic]
-    elif data_type == 'TimedUDoubleSeq':
-        dt = RTC.TimedUDoubleSeq(RTC.Time(0,0),[])
-        return dt, [float, basic]
-    elif data_type == 'TimedULongSeq':
-        dt = RTC.TimedULongSeq(RTC.Time(0,0),[])
-        return dt, [long, basic]
-    elif data_type == 'TimedUFloatSeq':
-        dt = RTC.TimedUFloatSeq(RTC.Time(0,0),[])
-        return dt, [float, basic]
-    elif data_type == 'TimedUShortSeq':
-        dt = RTC.TimedUShortSeq(RTC.Time(0,0),[])
-        return dt, [int, basic]
-    elif data_type == 'TimedPoint2D':
-        dt = RTC.TimedPoint2D(RTC.Time(0,0),RTC.Point2D(0,0))
-        return dt, [RTC.Point2D, extended, data_type]
-    elif data_type == 'TimedVector2D':
-        dt = RTC.TimedVector2D(RTC.Time(0,0),RTC.Vector2D(0,0))
-        return dt, [RTC.Vector2D, extended, data_type]
-    elif data_type == 'TimedPose2D':
-        dt = RTC.TimedPose2D(RTC.Time(0,0),RTC.Pose2D(RTC.Point2D(0,0),0))
-        return dt, [RTC.Pose2D, extended, data_type]
-    elif data_type == 'TimedGeometry2D':
-        dt = RTC.TimedGeometry2D(RTC.Time(0,0),RTC.Geometry2D(RTC.Pose2D(RTC.Point2D(0,0),0), RTC.Size2D(0,0)))
-        return dt, [RTC.Geometry2D, extended, data_type]
-    
-    
-    
-    
-    else:
-        return None
-
-
-
-
 
 
 ##
@@ -496,7 +379,7 @@ def GetDataType(m_port):
 def Start():
     
     if OOoRTC.draw_comp:
-        OOoRTC.draw_comp.m_activate()
+        OOoRTC.draw_comp.mActivate()
 
 ##
 # @brief コンポーネントを不活性化してDrawの操作を終了する関数
@@ -505,7 +388,7 @@ def Start():
 def Stop():
     
     if OOoRTC.draw_comp:
-        OOoRTC.draw_comp.m_deactivate()
+        OOoRTC.draw_comp.mDeactivate()
 
 
 ##
@@ -532,7 +415,7 @@ def Set_Rate():
             except:
                return
               
-            OOoRTC.draw_comp.m_setRate(text)
+            OOoRTC.draw_comp.mSetRate(text)
       
       
 
@@ -639,10 +522,10 @@ def MyModuleInit(manager):
 def JudgeDrawObjRTC(obj):
   
   if OOoRTC.draw_comp:
-    for n,i in OOoRTC.draw_comp._InPorts.items():
+    for n,i in OOoRTC.draw_comp.InPorts.items():
       if i._obj == obj:
         return i, "DataInPort"
-    for n,o in OOoRTC.draw_comp._OutPorts.items():
+    for n,o in OOoRTC.draw_comp.OutPorts.items():
       if o._obj == obj:
         return o, "DataOutPort"
   return None, None
@@ -669,19 +552,19 @@ def CompAddPort(name, o_port, dlg_control, obj, d_type):
         return False
     else:      
         
-          xo_control = dlg_control.getControl( m_ControlName.XoffsetBName )
+          xo_control = dlg_control.getControl( ControlName.XoffsetBName )
           xo = long(xo_control.Text)
 
-          yo_control = dlg_control.getControl( m_ControlName.YoffsetBName )
+          yo_control = dlg_control.getControl( ControlName.YoffsetBName )
           yo = long(yo_control.Text)
 
-          ro_control = dlg_control.getControl( m_ControlName.RoffsetBName )
+          ro_control = dlg_control.getControl( ControlName.RoffsetBName )
           ro = float(ro_control.Text)
 
-          xs_control = dlg_control.getControl( m_ControlName.XscaleBName )
+          xs_control = dlg_control.getControl( ControlName.XscaleBName )
           xs = long(xs_control.Text)
 
-          ys_control = dlg_control.getControl( m_ControlName.YscaleBName )
+          ys_control = dlg_control.getControl( ControlName.YscaleBName )
           ys = long(ys_control.Text)
 
           pos = obj.getPosition()
@@ -691,9 +574,9 @@ def CompAddPort(name, o_port, dlg_control, obj, d_type):
           
 
           if d_type == 'DataInPort':
-              OOoRTC.draw_comp.m_addOutPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
+              OOoRTC.draw_comp.mAddOutPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
           elif d_type== 'DataOutPort':
-              OOoRTC.draw_comp.m_addInPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
+              OOoRTC.draw_comp.mAddInPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
 
           
     return True
@@ -703,7 +586,9 @@ def CompAddPort(name, o_port, dlg_control, obj, d_type):
 #
 
 def createOOoDrawComp():
-                        
+    if OOoRTC.draw_comp:
+        MyMsgBox('',OOoRTC.SetCoding('RTCは起動済みです','utf-8'))
+        return                    
     
     if OOoRTC.mgr == None:
         if os.name == 'posix':
@@ -737,36 +622,7 @@ def createOOoDrawComp():
     return
 
 
-##
-# @brief ポートを接続する関数
-# @param obj1 接続するデータポート
-# @param obj2 接続するデータポート
-# @param c_name コネクタ名
-#
 
-def m_addport(obj1, obj2, c_name):
-
-    subs_type = "Flush"
-
-    obj1.disconnect_all()
-    
-    obj2.disconnect_all()
-
-    # connect ports
-    conprof = RTC.ConnectorProfile(c_name, "", [obj1,obj2], [])
-    OpenRTM_aist.CORBA_SeqUtil.push_back(conprof.properties,
-                                    OpenRTM_aist.NVUtil.newNV("dataport.interface_type",
-                                                         "corba_cdr"))
-
-    OpenRTM_aist.CORBA_SeqUtil.push_back(conprof.properties,
-                                    OpenRTM_aist.NVUtil.newNV("dataport.dataflow_type",
-                                                         "push"))
-
-    OpenRTM_aist.CORBA_SeqUtil.push_back(conprof.properties,
-                                    OpenRTM_aist.NVUtil.newNV("dataport.subscription_type",
-                                                         subs_type))
-
-    ret = obj2.connect(conprof)
 
 ##
 # @brief メッセージボックス表示の関数
@@ -805,183 +661,8 @@ class Bridge(object):
         msgbox.execute()
         msgbox.dispose()
 
-##
-# @brief ネーミングサービスへ接続する関数
-# @param s_name ネームサーバーの名前
-# @param orb ORBオブジェクト
-# @return ネーミングコンテキスト
-def SetNamingServer(s_name, orb):
-    
-    try:
-        namingserver = CorbaNaming(orb, s_name)
-    except:
-        MyMsgBox(OOoRTC.SetCoding('エラー','utf-8'),OOoRTC.SetCoding('ネーミングサービスへの接続に失敗しました','utf-8'))
-        return None
-    return namingserver
-
-##
-# @brief ツリーで選択したアイテムがポートかどうか判定する関数
-# @param objectTree ダイアログのツリー
-# @param _path ポートのパスのリスト
-# @return [データポートまでのPath、選択中のツリーノード]
-
-def JudgePort(objectTree, _paths):
-    m_list = []
-        
-    node = objectTree.getSelection()
-    if node:
-        parent = node.getParent()
-        if parent:
-            m_list.insert(0, node.getDisplayValue())
-        else:
-            return None
-        if node.getChildCount() != 0:
-            return None
-    else:
-        return None
-            
-    while(True):
-        if node:
-            node = node.getParent()
-            if node:
-                m_list.insert(0, node.getDisplayValue())
-            else:
-                break
-        
-
-    flag = False
-    for t_comp in _paths:
-        if t_comp[0] == m_list:
-            return t_comp, node
-            
-            flag = True
-            
-                
-    if flag == False:
-        return None
 
 
-
-
-
-
-##
-# @brief 各RTCのパスを取得する関数
-# @param context ネーミングコンテキスト
-# @param rtclist データポートのリスト
-# @param name 現在のパス名
-# @param oParent ツリーの現在のオブジェクト
-# @param oTreeDataModel ツリーオブジェクト
-#
-def ListRecursive(context, rtclist, name, oParent, oTreeDataModel):
-    
-    m_blLength = 100
-    
-    bl = context.list(m_blLength)
-    
-
-    cont = True
-    while cont:
-        for i in bl[0]:
-            if i.binding_type == CosNaming.ncontext:
-                
-                next_context = context.resolve(i.binding_name)
-                name_buff = name[:]
-                name.append(i.binding_name[0].id)
-
-                if oTreeDataModel == None:
-                    oChild = None
-                else:
-                    oChild = oTreeDataModel.createNode(i.binding_name[0].id,False)
-                    oParent.appendChild(oChild)
-                
-                
-                
-                ListRecursive(next_context,rtclist,name, oChild, oTreeDataModel)
-                
-
-                name = name_buff
-            elif i.binding_type == CosNaming.nobject:
-                if oTreeDataModel == None:
-                    oChild = None
-                else:
-                    oChild = oTreeDataModel.createNode(i.binding_name[0].id,False)
-                    oParent.appendChild(oChild)
-                
-                if len(rtclist) > m_blLength:
-                    break
-                if i.binding_name[0].kind == 'rtc':
-                    name_buff = name[:]
-                    name_buff.append(i.binding_name[0].id)
-                    
-                    tkm = OpenRTM_aist.CorbaConsumer()
-                    tkm.setObject(context.resolve(i.binding_name))
-                    inobj = tkm.getObject()._narrow(RTC.RTObject)
-
-                    try:
-                        pin = inobj.get_ports()
-                        for p in pin:
-                            name_buff2 = name_buff[:]
-                            profile = p.get_port_profile()
-                            props = nvlist_to_dict(profile.properties)
-                            tp_n = profile.name.split('.')[1]
-                            name_buff2.append(tp_n)
-                            if oTreeDataModel == None:
-                                pass
-                            else:
-                                oChild_port = oTreeDataModel.createNode(tp_n,False)
-                                oChild.appendChild(oChild_port)
-
-                            rtclist.append([name_buff2,p])
-                    except:
-                        pass
-                        
-            else:
-                pass
-        if CORBA.is_nil(bl[1]):
-            cont = False
-        else:
-            bl = i.next_n(m_blLength)
-
-
-
-
-##
-# @brief
-# @param naming ネーミングコンテキスト
-# @param rtclist データポートのリスト
-# @param name 現在のパス名
-# @param oParent ツリーの現在のオブジェクト
-# @param oTreeDataModel ツリーオブジェクト
-def rtc_get_rtclist(naming, rtclist, name, oParent, oTreeDataModel):
-    name_cxt = naming.getRootContext()
-    ListRecursive(name_cxt,rtclist,name, oParent, oTreeDataModel)
-    
-    return 0
-
-
-
-
-
-
-
-                       
-                       
-##
-# @brief ポートのパスのリストを取得する関数
-# @param name ネームサーバーの名前
-# @return ポートのパスのリスト
-#
-def getPathList(name):
-    if OOoRTC.mgr != None:
-        orb = OOoRTC.mgr._orb
-        namingserver = SetNamingServer(str(name), orb)
-        if namingserver:
-            _path = ['/', name]
-            _paths = []
-            rtc_get_rtclist(namingserver, _paths, _path, None, None)
-            return _paths
-    return None
 
 
 
@@ -993,8 +674,8 @@ def getPathList(name):
 # @param dlg_control ダイアログオブジェクト
 
 def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
-    oTree = dlg_control.getControl( m_ControlName.RTCTreeName )
-    tfns_control = dlg_control.getControl( m_ControlName.NameServerFName )
+    oTree = dlg_control.getControl( ControlName.RTCTreeName )
+    tfns_control = dlg_control.getControl( ControlName.NameServerFName )
     if OOoRTC.mgr != None:
         
 
@@ -1003,7 +684,7 @@ def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
 
         
        
-        namingserver = SetNamingServer(str(tfns_control.Text), orb)
+        namingserver = OOoRTC.SetNamingServer(str(tfns_control.Text), orb, MyMsgBox)
         
         
         
@@ -1020,7 +701,7 @@ def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
             
             _path = ['/', str(tfns_control.Text)]
             _paths = []
-            rtc_get_rtclist(namingserver, _paths, _path, oChild, oTreeDataModel)
+            OOoRTC.rtc_get_rtclist(namingserver, _paths, _path, oChild, oTreeDataModel)
 
             
                       
@@ -1028,19 +709,19 @@ def SetRTCTree(oTreeModel, smgr, ctx, dlg_control):
             oTreeModel.DataModel = oTreeDataModel
             
             
-            oTree.addSelectionChangeListener(MySelectListener(dlg_control, _paths))
+            oTree.addSelectionChangeListener(TreeSelectListener(dlg_control, _paths))
 
 
             create_listener = CreatePortListener( dlg_control, _paths)
-            create_control = dlg_control.getControl(m_ControlName.CreateBName)
+            create_control = dlg_control.getControl(ControlName.CreateBName)
             create_control.addActionListener(create_listener)
 
             delete_listener = DeleteListener(dlg_control, _paths)
-            delete_control = dlg_control.getControl(m_ControlName.DeleteBName)
+            delete_control = dlg_control.getControl(ControlName.DeleteBName)
             delete_control.addActionListener(delete_listener)
 
             setPos_listener = SetPosListener(dlg_control, _paths)
-            setpos_control = dlg_control.getControl(m_ControlName.SetPosBName)
+            setpos_control = dlg_control.getControl(ControlName.SetPosBName)
             setpos_control.addActionListener(setPos_listener)
 
 
@@ -1076,7 +757,7 @@ def LoadSheet():
       
       draw = OOoRTC.draw_comp.draw
       
-      OOoRTC.draw_comp.m_removeAllPort()
+      OOoRTC.draw_comp.mRemoveAllPort()
       oDrawPages = draw.drawpages
       oDrawPage = oDrawPages.getByIndex(0)
       
@@ -1096,7 +777,7 @@ def LoadSheet():
           if m_hostname == m_name[1]:
             pass
           else:
-            _paths = getPathList(m_name[1])
+            _paths = OOoRTC.GetPathList(m_name[1], OOoRTC.mgr ,MyMsgBox)
             m_hostname = m_name[1]
           if _paths == None:
             return
@@ -1135,9 +816,9 @@ def LoadSheet():
               
               if flag:
                 if props['port.port_type'] == 'DataInPort':
-                    OOoRTC.draw_comp.m_addOutPort(F_Name, p, [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj)
+                    OOoRTC.draw_comp.mAddOutPort(F_Name, p, [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj)
                 if props['port.port_type'] == 'DataOutPort':
-                    OOoRTC.draw_comp.m_addInPort(F_Name, p, [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj)
+                    OOoRTC.draw_comp.mAddInPort(F_Name, p, [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj)
 
 
 ##
@@ -1157,9 +838,9 @@ def UpdateSaveSheet():
     text = ''
 
     PortList = []
-    for n,i in OOoRTC.draw_comp._InPorts.items(): 
+    for n,i in OOoRTC.draw_comp.InPorts.items(): 
         PortList.append(i)
-    for n,o in OOoRTC.draw_comp._OutPorts.items(): 
+    for n,o in OOoRTC.draw_comp.OutPorts.items(): 
         PortList.append(o)
         
     for p in PortList:
@@ -1195,22 +876,22 @@ def UpdateSaveSheet():
 #
 def UpdateTree(dlg_control, m_port):
     
-    info_control = dlg_control.getControl( m_ControlName.TextFName )
+    info_control = dlg_control.getControl( ControlName.TextFName )
     info_control.setText(OOoRTC.SetCoding('作成済み','utf-8'))
     
-    xo_control = dlg_control.getControl( m_ControlName.XoffsetBName )
+    xo_control = dlg_control.getControl( ControlName.XoffsetBName )
     xo_control.setText(str(m_port._ox))
 
-    yo_control = dlg_control.getControl( m_ControlName.YoffsetBName )
+    yo_control = dlg_control.getControl( ControlName.YoffsetBName )
     yo_control.setText(str(m_port._oy))
 
-    ro_control = dlg_control.getControl( m_ControlName.RoffsetBName )
+    ro_control = dlg_control.getControl( ControlName.RoffsetBName )
     ro_control.setText(str(m_port._or))
 
-    xs_control = dlg_control.getControl( m_ControlName.XscaleBName )
+    xs_control = dlg_control.getControl( ControlName.XscaleBName )
     xs_control.setText(str(m_port._sx))
 
-    ys_control = dlg_control.getControl( m_ControlName.YscaleBName )
+    ys_control = dlg_control.getControl( ControlName.YscaleBName )
     ys_control.setText(str(m_port._sy))
 
 ##
@@ -1218,7 +899,7 @@ def UpdateTree(dlg_control, m_port):
 # @param dlg_control ダイアログオブジェクト
 
 def ClearInfo(dlg_control):
-    info_control = dlg_control.getControl( m_ControlName.TextFName )
+    info_control = dlg_control.getControl( ControlName.TextFName )
     info_control.setText(OOoRTC.SetCoding('未作成','utf-8'))
 
 ##
@@ -1259,11 +940,11 @@ class CreatePortListener( unohelper.Base, XActionListener):
                 jport, d_type = JudgeDrawObjRTC(obj)
                 
                 if jport:
-                    xo_control = self.dlg_control.getControl( m_ControlName.XoffsetBName )
-                    yo_control = self.dlg_control.getControl( m_ControlName.YoffsetBName )
-                    ro_control = self.dlg_control.getControl( m_ControlName.RoffsetBName )
-                    xs_control = self.dlg_control.getControl( m_ControlName.XscaleBName )
-                    ys_control = self.dlg_control.getControl( m_ControlName.YscaleBName )
+                    xo_control = self.dlg_control.getControl( ControlName.XoffsetBName )
+                    yo_control = self.dlg_control.getControl( ControlName.YoffsetBName )
+                    ro_control = self.dlg_control.getControl( ControlName.RoffsetBName )
+                    xs_control = self.dlg_control.getControl( ControlName.XscaleBName )
+                    ys_control = self.dlg_control.getControl( ControlName.YscaleBName )
                     jport._ox = long(xo_control.Text)
                     jport._oy = long(yo_control.Text)
                     jport._or = float(ro_control.Text)
@@ -1276,8 +957,8 @@ class CreatePortListener( unohelper.Base, XActionListener):
 
                 
                     
-                objectTree = self.dlg_control.getControl(m_ControlName.RTCTreeName)
-                t_comp, nd = JudgePort(objectTree, self._paths)
+                objectTree = self.dlg_control.getControl(ControlName.RTCTreeName)
+                t_comp, nd = OOoRTC.JudgePort(objectTree, self._paths)
                 
                 
                 if t_comp:
@@ -1303,7 +984,7 @@ class CreatePortListener( unohelper.Base, XActionListener):
 
                     UpdateSaveSheet()
 
-                    info_control = self.dlg_control.getControl( m_ControlName.TextFName )
+                    info_control = self.dlg_control.getControl( ControlName.TextFName )
                     info_control.setText(OOoRTC.SetCoding('作成済み','utf-8'))
         
 
@@ -1336,11 +1017,11 @@ class SetRTCTreeListener( unohelper.Base, XActionListener ):
 
 
 ##
-# @class MySelectListener
+# @class TreeSelectListener
 # @brief ツリーのマウスでの操作に対するコールバック
 #
 
-class MySelectListener( unohelper.Base, XSelectionChangeListener):
+class TreeSelectListener( unohelper.Base, XSelectionChangeListener):
     ##
     # @brief コンストラクタ
     # @param self 
@@ -1372,7 +1053,7 @@ class MySelectListener( unohelper.Base, XSelectionChangeListener):
         else:
             return
 
-        info_control = self.dlg_control.getControl( m_ControlName.TextFName )
+        info_control = self.dlg_control.getControl( ControlName.TextFName )
         info_control.setText(OOoRTC.SetCoding('未作成','utf-8'))
 
 
@@ -1411,9 +1092,9 @@ class DeleteListener( unohelper.Base, XActionListener ):
                 jport, d_type = JudgeDrawObjRTC(obj)
                 if jport:
                     if d_type == "DataInPort":
-                        OOoRTC.draw_comp.m_removeInPort(jport)
+                        OOoRTC.draw_comp.mRemoveInPort(jport)
                     else:
-                        OOoRTC.draw_comp.m_removeOutPort(jport)
+                        OOoRTC.draw_comp.mRemoveOutPort(jport)
                     ClearInfo(self.dlg_control)
                     MyMsgBox('',OOoRTC.SetCoding('削除しました','utf-8'))
 
@@ -1446,13 +1127,13 @@ class SetPosListener( unohelper.Base, XActionListener ):
     # @param actionEvent 
     def actionPerformed(self, actionEvent):
         
-        objectTree = self.dlg_control.getControl(m_ControlName.RTCTreeName)
+        objectTree = self.dlg_control.getControl(ControlName.RTCTreeName)
         
-        t_comp, nd = JudgePort(objectTree, self._paths)
+        t_comp, nd = OOoRTC.JudgePort(objectTree, self._paths)
         
         if t_comp:
             
-            for n,i in OOoRTC.draw_comp._InPorts.items():
+            for n,i in OOoRTC.draw_comp.InPorts.items():
                 if i._port_a[0] == t_comp[0]:
                     i._obj.RotateAngle = i._r
                     t_pos = Point()
@@ -1485,7 +1166,7 @@ class SetAllPosListener( unohelper.Base, XActionListener ):
     # @param actionEvent 
     def actionPerformed(self, actionEvent):
         
-        for n,i in OOoRTC.draw_comp._InPorts.items():
+        for n,i in OOoRTC.draw_comp.InPorts.items():
           i._obj.RotateAngle = i._r
           t_pos = Point()
           t_pos.X = i._x
@@ -1521,7 +1202,7 @@ def SetDialog():
 
 
 
-    oTree = dlg_control.getControl(m_ControlName.RTCTreeName)
+    oTree = dlg_control.getControl(ControlName.RTCTreeName)
 
     LoadSheet()
     
@@ -1529,29 +1210,29 @@ def SetDialog():
     oTreeModel = oTree.getModel()
 
     SetRTCTree_listener = SetRTCTreeListener( oTreeModel, smgr, ctx, dlg_control )
-    setrtctree_control = dlg_control.getControl(m_ControlName.CreateTreeBName)
+    setrtctree_control = dlg_control.getControl(ControlName.CreateTreeBName)
     setrtctree_control.addActionListener(SetRTCTree_listener)
 
-    tfns_control = dlg_control.getControl( m_ControlName.NameServerFName )
+    tfns_control = dlg_control.getControl( ControlName.NameServerFName )
     tfns_control.setText('localhost')
 
-    xo_control = dlg_control.getControl( m_ControlName.XoffsetBName )
+    xo_control = dlg_control.getControl( ControlName.XoffsetBName )
     xo_control.setText(str(0))
 
-    yo_control = dlg_control.getControl( m_ControlName.YoffsetBName )
+    yo_control = dlg_control.getControl( ControlName.YoffsetBName )
     yo_control.setText(str(0))
 
-    ro_control = dlg_control.getControl( m_ControlName.RoffsetBName )
+    ro_control = dlg_control.getControl( ControlName.RoffsetBName )
     ro_control.setText(str(0))
 
-    xs_control = dlg_control.getControl( m_ControlName.XscaleBName )
+    xs_control = dlg_control.getControl( ControlName.XscaleBName )
     xs_control.setText(str(100))
 
-    ys_control = dlg_control.getControl( m_ControlName.YscaleBName )
+    ys_control = dlg_control.getControl( ControlName.YscaleBName )
     ys_control.setText(str(100))
 
     setallpos_listener = SetAllPosListener( dlg_control )
-    setallpos_control = dlg_control.getControl(m_ControlName.SetAllPosBName)
+    setallpos_control = dlg_control.getControl(ControlName.SetAllPosBName)
     setallpos_control.addActionListener(setallpos_listener)
 
     
