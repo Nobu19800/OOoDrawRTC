@@ -250,24 +250,26 @@ def SetNamingServer(s_name, orb, MyMsgBox = None):
 
 def JudgePort(objectTree, _paths):
     m_list = []
-        
+    
     node = objectTree.getSelection()
     if node:
+        
         parent = node.getParent()
         if parent:
             m_list.insert(0, node.getDisplayValue())
         else:
-            return None
+            return None, None
         if node.getChildCount() != 0:
-            return None
+            return None, None
     else:
-        return None
-            
+        return None, None
     while(True):
         if node:
             node = node.getParent()
             if node:
                 m_list.insert(0, node.getDisplayValue())
+                
+                
             else:
                 break
         
@@ -281,7 +283,7 @@ def JudgePort(objectTree, _paths):
             
                 
     if flag == False:
-        return None
+        return None, None
 
 ##
 # @brief ポートのパスのリストを取得する関数
