@@ -86,31 +86,17 @@ class DataType:
 
     basic = 0
     extended = 1
+
+    DataTypeList = ["TimedDoubleSeq","TimedLongSeq","TimedFloatSeq","TimedShortSeq","TimedUDoubleSeq","TimedULongSeq",
+                    "TimedUFloatSeq","TimedUShortSeq","TimedPoint2D","TimedVector2D","TimedPose2D","TimedGeometry2D"]
     def __init__(self):
         pass
 
 
-##
-# @brief データポートのデータ型を返す関数
-# @param m_port データポート
-# @return データオブジェクト、[データ型、データのタイプ、データ型の名前]
-#
-
-def GetDataType(m_port):
+def GetDataSType(data_type):
     basic = DataType.basic
     extended = DataType.extended
-    
-    profile = m_port.get_port_profile()
-    props = nvlist_to_dict(profile.properties)
-    data_type =  props['dataport.data_type']
-    if data_type.startswith('IDL:'):
-        data_type = data_type[4:]
-    colon = data_type.rfind(':')
-    if colon != -1:
-        data_type = data_type[:colon]
 
-    data_type = data_type.replace('RTC/','')
-    
     if data_type == 'TimedDoubleSeq':
         dt = RTC.TimedDoubleSeq(RTC.Time(0,0),[])
         return dt, [float, basic]
@@ -147,12 +133,34 @@ def GetDataType(m_port):
     elif data_type == 'TimedGeometry2D':
         dt = RTC.TimedGeometry2D(RTC.Time(0,0),RTC.Geometry2D(RTC.Pose2D(RTC.Point2D(0,0),0), RTC.Size2D(0,0)))
         return dt, [RTC.Geometry2D, extended, data_type]
+
+    return None, None
+
+##
+# @brief データポートのデータ型を返す関数
+# @param m_port データポート
+# @return データオブジェクト、[データ型、データのタイプ、データ型の名前]
+#
+
+def GetDataType(m_port):
+    basic = DataType.basic
+    extended = DataType.extended
+    
+    profile = m_port.get_port_profile()
+    props = nvlist_to_dict(profile.properties)
+    data_type =  props['dataport.data_type']
+    if data_type.startswith('IDL:'):
+        data_type = data_type[4:]
+    colon = data_type.rfind(':')
+    if colon != -1:
+        data_type = data_type[:colon]
+
+    data_type = data_type.replace('RTC/','')
     
     
     
-    
-    else:
-        return None
+    return GetDataSType(data_type)
+
 
 
 

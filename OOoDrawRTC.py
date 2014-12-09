@@ -79,6 +79,8 @@ class ControlName:
     RTCTreeName = "RTCTreeControl"
     CreateTreeBName = "CreateRTCTreeButton"
     SetAllPosBName = "SetAllPosButton"
+    DataTypeCBName = "DataTypeComboBox"
+    PortTypeCBName = "PortTypeComboBox"
     def __init__(self):
         pass
 
@@ -166,13 +168,23 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @param pos 図形の初期位置、角度[X,Y,R]
   # @param obj 図形のオブジェクト
   #
-  def mAddInPort(self, name, m_outport, offset, scale, pos, obj):
-      m_data_i, m_data_type =  DrawDataPort.GetDataType(m_outport[1])
+  def mAddInPort(self, name, m_outport, offset, scale, pos, obj, autoCon = True):
+
+      m_data_i = None
+      m_data_type = None
+    
+      if autoCon:
+        m_data_i, m_data_type =  DrawDataPort.GetDataType(m_outport[1])
+      else:
+        m_data_i, m_data_type =  DrawDataPort.GetDataSType(m_outport[1])
+
+      
       
       if m_data_i:
         m_inport = OpenRTM_aist.InPort(name, m_data_i)
         self.addInPort(name, m_inport)
-        OOoRTC.ConnectPort(m_inport._objref, m_outport[1], name)
+        if autoCon:
+            OOoRTC.ConnectPort(m_inport._objref, m_outport[1], name)
         self.InPorts[name] = DrawDataPort.DrawPortObject(m_inport, m_data_i, name, offset, scale, pos, obj, m_outport, m_data_type)
 
 
@@ -186,13 +198,22 @@ class OOoDrawControl(OpenRTM_aist.DataFlowComponentBase):
   # @param pos 図形の初期位置、角度[X,Y,R]
   # @param obj 図形のオブジェクト
   #
-  def mAddOutPort(self, name, m_inport, offset, scale, pos, obj):
-      m_data_o, m_data_type =  DrawDataPort.GetDataType(m_inport[1])
+  def mAddOutPort(self, name, m_inport, offset, scale, pos, obj, autoCon = True):
+      
+      m_data_o = None
+      m_data_type = None
+    
+      if autoCon:
+        m_data_o, m_data_type =  DrawDataPort.GetDataType(m_inport[1])
+      else:
+        m_data_o, m_data_type =  DrawDataPort.GetDataSType(m_inport[1])
+        
       
       if m_data_o:
         m_outport = OpenRTM_aist.OutPort(name, m_data_o)
         self.addOutPort(name, m_outport)
-        OOoRTC.ConnectPort(m_outport._objref, m_inport[1], name)
+        if autoCon:
+            OOoRTC.ConnectPort(m_outport._objref, m_inport[1], name)
         self.OutPorts[name] = DrawDataPort.DrawPortObject(m_outport, m_data_o, name, offset, scale, pos, obj, m_inport, m_data_type)
 
   ##
@@ -546,8 +567,8 @@ def JudgeDrawObjRTC(obj):
 # @return 成功ならばTrue、失敗ならばFalse
 #
 
-def CompAddPort(name, o_port, dlg_control, obj, d_type):
-
+def CompAddPort(name, o_port, dlg_control, obj, d_type, autoCon = True):
+    
     if OOoRTC.draw_comp == None:
         return False
     else:      
@@ -574,9 +595,10 @@ def CompAddPort(name, o_port, dlg_control, obj, d_type):
           
 
           if d_type == 'DataInPort':
-              OOoRTC.draw_comp.mAddOutPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
+              
+              OOoRTC.draw_comp.mAddOutPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj, autoCon)
           elif d_type== 'DataOutPort':
-              OOoRTC.draw_comp.mAddInPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj)
+              OOoRTC.draw_comp.mAddInPort(name, o_port, [xo,yo,ro], [xs,ys], [pos.X, pos.Y, rot], obj, autoCon)
 
           
     return True
@@ -588,7 +610,7 @@ def CompAddPort(name, o_port, dlg_control, obj, d_type):
 def createOOoDrawComp():
     if OOoRTC.draw_comp:
         MyMsgBox('',OOoRTC.SetCoding('RTCは起動済みです','utf-8'))
-        return                    
+        return                
     
     if OOoRTC.mgr == None:
         if os.name == 'posix':
@@ -744,7 +766,30 @@ class OOoDraw(Bridge):
   def document(self): return self._document
   
 
+def LoadParam(m_list, oDrawPages):
+    m_i = long(m_list[1])
+    m_j = long(m_list[2])
+    _ox = long(m_list[3])
+    _oy = long(m_list[4])
+    _or = float(m_list[5])
+    _sx = long(m_list[6])
+    _sy = long(m_list[7])
+    _x = long(m_list[8])
+    _y = long(m_list[9])
+    _r = long(m_list[10])
 
+    flag = True
+    if m_i > oDrawPages.Count:
+                
+        flag = False
+        
+    m_oDrawPage = oDrawPages.getByIndex(m_i)
+    if m_j > m_oDrawPage.Count:
+                
+        flag = False
+    _obj = m_oDrawPage.getByIndex(m_j)
+
+    return m_i,m_j,_ox,_oy,_or,_sx,_sy,_x,_y,_r,_obj,flag
 
 ##
 # @brief 読み込んだ保存用シートからポートを作成する関数
@@ -774,51 +819,47 @@ def LoadSheet():
           m_name = re.split(':',m_list[0])
           if len(m_name) < 2:
             return
-          if m_hostname == m_name[1]:
-            pass
+          if len(m_name) == 2:
+              for dn in DrawDataPort.DataType.DataTypeList:
+                  if m_name[1] == dn:
+                      m_name[1] = dn
+                  m_i,m_j,_ox,_oy,_or,_sx,_sy,_x,_y,_r,_obj,flag = LoadParam(m_list, oDrawPages)
+                  F_Name = m_name[1] + str(m_i) + str(m_j)
+
+                  if m_name[0] == "DataOutPort":
+                    OOoRTC.draw_comp.mAddOutPort(F_Name, [[m_name[0],m_name[1]],m_name[1]], [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj, False)
+                  if m_name[0] == 'DataOutPort':
+                    OOoRTC.draw_comp.mAddInPort(F_Name, [[m_name[0],m_name[1]],m_name[1]], [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj, False)
+              
           else:
-            _paths = OOoRTC.GetPathList(m_name[1], OOoRTC.mgr ,MyMsgBox)
-            m_hostname = m_name[1]
-          if _paths == None:
-            return
-          for p in _paths:
-            if p[0] == m_name:
-              
-              
-              profile = p[1].get_port_profile()
-              props = nvlist_to_dict(profile.properties)
+              if m_hostname == m_name[1]:
+                pass
+              else:
+                _paths = OOoRTC.GetPathList(m_name[1], OOoRTC.mgr ,MyMsgBox)
+                m_hostname = m_name[1]
+              if _paths == None:
+                return
+              for p in _paths:
+                if p[0] == m_name:
+                  
+                  
+                  profile = p[1].get_port_profile()
+                  props = nvlist_to_dict(profile.properties)
 
-              m_i = long(m_list[1])
-              m_j = long(m_list[2])
-              _ox = long(m_list[3])
-              _oy = long(m_list[4])
-              _or = float(m_list[5])
-              _sx = long(m_list[6])
-              _sy = long(m_list[7])
-              _x = long(m_list[8])
-              _y = long(m_list[9])
-              _r = long(m_list[10])
+                  m_i,m_j,_ox,_oy,_or,_sx,_sy,_x,_y,_r,_obj,flag = LoadParam(m_list, oDrawPages)
 
-              F_Name = p[0][-2] + p[0][-1] + str(m_i) + str(m_j)
+                  F_Name = p[0][-2] + p[0][-1] + str(m_i) + str(m_j)
 
-              
-              flag = True
-              if m_i > oDrawPages.Count:
-                
-                flag = False
-              m_oDrawPage = oDrawPages.getByIndex(m_i)
-              if m_j > m_oDrawPage.Count:
-                
-                flag = False
-              _obj = m_oDrawPage.getByIndex(m_j)
-              
-              
-              
-              if flag:
-                if props['port.port_type'] == 'DataInPort':
-                    OOoRTC.draw_comp.mAddOutPort(F_Name, p, [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj)
-                if props['port.port_type'] == 'DataOutPort':
-                    OOoRTC.draw_comp.mAddInPort(F_Name, p, [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj)
+                  
+                  
+                  
+                  
+                  
+                  if flag:
+                    if props['port.port_type'] == 'DataInPort':
+                        OOoRTC.draw_comp.mAddOutPort(F_Name, p, [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj)
+                    if props['port.port_type'] == 'DataOutPort':
+                        OOoRTC.draw_comp.mAddInPort(F_Name, p, [_ox,_oy,_or], [_sx,_sy], [_x, _y, _r], _obj)
 
 
 ##
@@ -878,6 +919,12 @@ def UpdateTree(dlg_control, m_port):
     
     info_control = dlg_control.getControl( ControlName.TextFName )
     info_control.setText(OOoRTC.SetCoding('作成済み','utf-8'))
+
+    dtcb_control = dlg_control.getControl( ControlName.DataTypeCBName )
+    if len(m_port._port_a[0]) == 2:
+        dtcb_control.setText(m_port._port_a[1])
+    else:
+        dtcb_control.setText("")
     
     xo_control = dlg_control.getControl( ControlName.XoffsetBName )
     xo_control.setText(str(m_port._ox))
@@ -954,8 +1001,34 @@ class CreatePortListener( unohelper.Base, XActionListener):
 
                     return
 
+                dtcb_control = self.dlg_control.getControl( ControlName.DataTypeCBName )
+                dt = str(dtcb_control.Text)
+                if dt != "":
+                    F_Name = dt + str(OpenRTM_aist.uuid1())
+                    ptcb_control = self.dlg_control.getControl( ControlName.PortTypeCBName )
+                    pt = str(ptcb_control.Text)
+                    
 
-                
+                    for d in DrawDataPort.DataType.DataTypeList:
+                        if dt == d:
+                            dt = d
+                    
+                    if pt == "DataOutPort":
+                        pt = "DataInPort"
+                    else:
+                        pt = "DataOutPort"
+                    CompAddPort(F_Name, [[pt,dt],dt], self.dlg_control, obj, pt, False)
+                    if pt == "DataInPort":
+                        MyMsgBox('',OOoRTC.SetCoding(dt+"型のOutPortを作成しました。",'utf-8'))
+                    else:
+                        MyMsgBox('',OOoRTC.SetCoding(dt+"型のInPortを作成しました。",'utf-8'))
+                    UpdateSaveSheet()
+
+                    info_control = self.dlg_control.getControl( ControlName.TextFName )
+                    info_control.setText(OOoRTC.SetCoding('作成済み','utf-8'))
+
+                    return
+                    
                     
                 objectTree = self.dlg_control.getControl(ControlName.RTCTreeName)
                 t_comp, nd = OOoRTC.JudgePort(objectTree, self._paths)
@@ -1047,6 +1120,9 @@ class TreeSelectListener( unohelper.Base, XSelectionChangeListener):
             if sobj.Count > 0:
                 obj = sobj.getByIndex(0)
                 jport, d_type = JudgeDrawObjRTC(obj)
+
+                
+                
                 if jport:
                     UpdateTree(self.dlg_control, jport)
                     return
@@ -1230,6 +1306,16 @@ def SetDialog():
 
     ys_control = dlg_control.getControl( ControlName.YscaleBName )
     ys_control.setText(str(100))
+
+    dtcb_control = dlg_control.getControl( ControlName.DataTypeCBName )
+    dtcb_control.addItem ("", dtcb_control.ItemCount)
+    for n in DrawDataPort.DataType.DataTypeList:
+        dtcb_control.addItem (n, dtcb_control.ItemCount)
+    
+    ptcb_control = dlg_control.getControl( ControlName.PortTypeCBName )
+    ptcb_control.addItem ("DataInPort", ptcb_control.ItemCount)
+    ptcb_control.addItem ("DataOutPort", ptcb_control.ItemCount)
+    ptcb_control.setText('DataInPort')
 
     setallpos_listener = SetAllPosListener( dlg_control )
     setallpos_control = dlg_control.getControl(ControlName.SetAllPosBName)
