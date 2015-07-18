@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<rtc:RtcProfile rtc:version="0.2" rtc:id="RTC:Miyamoto Nobuhiko:Office:OOoDrawControl:1.0.0" xmlns:rtcExt="http://www.openrtp.org/namespaces/rtc_ext" xmlns:rtcDoc="http://www.openrtp.org/namespaces/rtc_doc" xmlns:rtc="http://www.openrtp.org/namespaces/rtc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <rtc:BasicInfo xsi:type="rtcExt:basic_info_ext" rtcExt:saveProject="OOoDrawControl" rtc:updateDate="2015-07-18T19:05:46.134+09:00" rtc:creationDate="2015-07-17T22:57:39+09:00" rtc:abstract="OOoDrawRTCはDataInPortの入力による図形の位置、角度の変更、DataOutPortから図形の位置、角度の出力ができるRTCです。  ※このRTCはOpenOfficeのマクロとして動作します。 インストール方法などはマニュアルを参照してください。 http://ooortc.shime-saba.com/
+インストール後、このRTCをインストールしたフォルダのOOoDrawRTC.odgを開いてください。" rtc:version="1.0.0" rtc:vendor="Miyamoto Nobuhiko" rtc:maxInstances="1" rtc:executionType="PeriodicExecutionContext" rtc:executionRate="1000.0" rtc:description="Openoffice Draw Component" rtc:category="Office" rtc:componentKind="DataFlowComponent" rtc:activityType="PERIODIC" rtc:componentType="STATIC" rtc:name="OOoDrawControl">
+        <rtcDoc:Doc rtcDoc:reference="" rtcDoc:license="GPL" rtcDoc:creator="" rtcDoc:algorithm="" rtcDoc:inout="" rtcDoc:description="OOoDrawRTCはDataInPortの入力による図形の位置、角度の変更、DataOutPortから図形の位置、角度の出力ができるRTCです。 &lt;br/&gt;※このRTCはOpenOfficeのマクロとして動作します。&lt;br/&gt;インストール方法などはマニュアルを参照してください。&lt;br/&gt;http://ooortc.shime-saba.com/"/>
+        <rtcExt:VersionUpLogs></rtcExt:VersionUpLogs>
+        <rtcExt:VersionUpLogs></rtcExt:VersionUpLogs>
+    </rtc:BasicInfo>
+    <rtc:Actions>
+        <rtc:OnInitialize xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnFinalize xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnStartup xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnShutdown xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnActivated xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnDeactivated xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnAborting xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnError xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnReset xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnExecute xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnStateUpdate xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnRateChanged xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnAction xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+        <rtc:OnModeChanged xsi:type="rtcDoc:action_status_doc" rtc:implemented="true"/>
+    </rtc:Actions>
+    <rtc:Language xsi:type="rtcExt:language_ext" rtc:kind="Python">
+        <rtcExt:targets rtcExt:os="Windows" rtcExt:langVersion="New Version">
+            <rtcExt:osVersions>vista</rtcExt:osVersions>
+            <rtcExt:osVersions>8.1</rtcExt:osVersions>
+            <rtcExt:libraries rtcExt:other="http://www.openoffice.org/ja/" rtcExt:version="3.2" rtcExt:name="OpenOffice.org"/>
+            <rtcExt:libraries rtcExt:other="http://www.openoffice.org/ja/" rtcExt:version="3.4.1" rtcExt:name="Apache OpenOffice"/>
+            <rtcExt:libraries rtcExt:other="http://www.openoffice.org/ja/" rtcExt:version="4.1.1" rtcExt:name="Apache OpenOffice"/>
+        </rtcExt:targets>
+        <rtcExt:targets rtcExt:os="Ubuntu" rtcExt:langVersion="New Version">
+            <rtcExt:osVersions>10.04</rtcExt:osVersions>
+            <rtcExt:osVersions>12.04</rtcExt:osVersions>
+            <rtcExt:libraries rtcExt:other="http://www.openoffice.org/ja/" rtcExt:version="3.2" rtcExt:name="OpenOffice.org"/>
+            <rtcExt:libraries rtcExt:other="https://ja.libreoffice.org/" rtcExt:version="3.5" rtcExt:name="LibreOffice"/>
+        </rtcExt:targets>
+    </rtc:Language>
+</rtc:RtcProfile>
